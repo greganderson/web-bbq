@@ -9,7 +9,6 @@ function Feedback() {
     const responses = ["Green", "Yellow", "Red"];
 
     const handleResponse = useCallback((response) => () => {
-        console.log(name);
         fetch(`${base}/bbbq`, {
             method: "POST",
             headers: {

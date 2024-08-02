@@ -46,7 +46,7 @@ function Teacher() {
             fetchUpdates();
         }
 
-        const timer = setInterval(fetchUpdates, 5000);
+        const timer = setInterval(fetchUpdates, 1000);
 
         return () => clearInterval(timer);
     }, [passwd]);

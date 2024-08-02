@@ -1,9 +1,12 @@
 import { createSlice, configureStore } from "@reduxjs/toolkit";
 
+const localhost = "http://localhost:8000"
+const aws = "http://bbq-backend-dev.us-west-2.elasticbeanstalk.com"
+
 const appSlice = createSlice({
     name: "app",
     initialState: {
-        baseUrl: "http://localhost:8000",
+        baseUrl: aws,
         name: "",
     },
     reducers: {
