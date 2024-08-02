@@ -1,0 +1,5 @@
+.input {
+    &:focus-within {
+        outline: rem(1px) solid var(--mantine-color-pale_purple-4);
+    }
+}
