@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Title, List, Divider } from "@mantine/core";
+import { Title, List, Divider } from "@mantine/core";
 import { Response } from "../types.ts";
 
 interface ResponsesProps {

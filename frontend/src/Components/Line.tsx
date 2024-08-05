@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { Container, Title, List, Divider, ScrollArea, Button } from "@mantine/core";
+import { Title, List, Divider, ScrollArea, Button } from "@mantine/core";
 import { RootState } from "../Store.ts";
 
 interface LineProps {
