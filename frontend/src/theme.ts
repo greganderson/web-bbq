@@ -1,4 +1,4 @@
-import { createTheme, Input } from "@mantine/core";
+import { createTheme, Input, MantineColorsTuple, MantineThemeOverride, MantineTheme } from "@mantine/core";
 import classes from "./App.module.css";
 
 const pale_purple: MantineColorsTuple = [
@@ -14,14 +14,14 @@ const pale_purple: MantineColorsTuple = [
     '#3b3979'
 ];
 
-const webTheme = createTheme({
+const webTheme: MantineThemeOverride = createTheme({
     primaryColor: "pale_purple",
     colors: {
         pale_purple,
     },
     components: {
         Container: {
-            styles: (theme) => ({
+            styles: (theme: MantineTheme) => ({
                 root: {
                     border: `1px solid ${theme.colors.pale_purple[7]}`,
                     borderRadius: "5px",

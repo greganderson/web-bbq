@@ -1,8 +1,15 @@
+import React from "react";
 import { useSelector } from "react-redux";
 import { Container, Title, List, Divider, ScrollArea, Button } from "@mantine/core";
+import { RootState } from "../Store.ts";
 
-function Line({ line, update }) {
-    const base = useSelector((state) => state.app.baseUrl);
+interface LineProps {
+    line: string[],
+    update: () => void,
+}
+
+const Line: React.FC<LineProps> = ({ line, update }) => {
+    const base = useSelector((state: RootState) => state.app.baseUrl);
 
     const handleHelpNext = () => {
         fetch(`${base}/line`, {
@@ -11,25 +18,27 @@ function Line({ line, update }) {
                 "Content-Type": "application/json"
             }
         });
+
+        update();
     }
 
     return (
-        <Container>
+        <div>
             <Title order={4}>Line</Title>
             <Divider my="md" />
             <ScrollArea h={75}>
                 <List center>
-                    {line.map((next, idx) => (
+                    {line.map((next: string, idx: number) => (
                         <List.Item
-                        style={{ listStyleType: "none" }}
-                        key={idx}>
-                            { next }
+                            style={{ listStyleType: "none" }}
+                            key={idx}>
+                            {next}
                         </List.Item>
                     ))}
                 </List>
             </ScrollArea>
             <Button variant="outline" onClick={handleHelpNext}>Help Next</Button>
-        </Container>
+        </div>
     )
 }
 

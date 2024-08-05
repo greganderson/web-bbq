@@ -1,20 +1,26 @@
+import React from "react";
 import { Container, Title, List, Divider } from "@mantine/core";
+import { Response } from "../types.ts";
 
-function Responses({ responses }) {
-    return(
-        <Container>
+interface ResponsesProps {
+    responses: Response[]
+}
+
+const Responses: React.FC<ResponsesProps> = ({ responses }) => {
+    return (
+        <div>
             <Title order={4}>Responses</Title>
             <Divider my="md" />
             <List center >
-                {responses.map((resp, idx) => (
+                {responses.map((resp, idx: number) => (
                     <List.Item
-                    style={{ listStyleType: "none" }}
-                    key={idx}>
-                        { resp.student }: { resp.message }
+                        style={{ listStyleType: "none" }}
+                        key={idx}>
+                        {resp.student}: {resp.message}
                     </List.Item>
                 ))}
             </List>
-        </Container>
+        </div>
     )
 }
 

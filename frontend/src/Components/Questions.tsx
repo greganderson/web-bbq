@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Group, Button, ActionIcon, HoverCard, Text } from "@mantine/core";
 import { IconHandStop } from "@tabler/icons-react";
+import { RootState } from "../Store.ts";
 
 function Questions() {
     const [questionInput, setQuestionInput] = useState("");
-    const base = useSelector((state) => state.app.baseUrl);
-    const name = useSelector((state) => state.app.name);
+    const base = useSelector((state: RootState) => state.app.baseUrl);
+    const name = useSelector((state: RootState) => state.app.name);
 
-    const handleQuestionChange = (e) => {
+    const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setQuestionInput(e.target.value);
     }
 
@@ -37,18 +38,18 @@ function Questions() {
     return (
         <>
             <Textarea
-            label="Question"
-            value={questionInput} 
-            onChange={handleQuestionChange} />
+                label="Question"
+                value={questionInput}
+                onChange={handleQuestionChange} />
 
             <Group justify="space-between">
 
-                <HoverCard withd={180} shadow="md">
+                <HoverCard width={180} shadow="md">
                     <HoverCard.Target>
                         <ActionIcon
-                        variant="outline"
-                        size="xl"
-                        onClick={handleRaisedHand}>
+                            variant="outline"
+                            size="xl"
+                            onClick={handleRaisedHand}>
                             <IconHandStop />
                         </ActionIcon>
                     </HoverCard.Target>

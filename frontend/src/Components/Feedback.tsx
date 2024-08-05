@@ -2,19 +2,20 @@ import { useCallback } from "react";
 import { useSelector } from "react-redux";
 import { Group, ActionIcon, HoverCard, Text } from "@mantine/core";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerStop } from "@tabler/icons-react";
+import { RootState } from "../Store.ts";
 
 function Feedback() {
-    const name = useSelector((state) => state.app.name);
-    const base = useSelector((state) => state.app.baseUrl);
+    const name = useSelector((state: RootState) => state.app.name);
+    const base = useSelector((state: RootState) => state.app.baseUrl);
     const responses = ["Green", "Yellow", "Red"];
 
-    const handleResponse = useCallback((response) => () => {
+    const handleResponse = useCallback((response: number) => () => {
         fetch(`${base}/bbbq`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ student: name, message: responses[response]})
+            body: JSON.stringify({ student: name, message: responses[response] })
         });
     }, [name, base]);
 
@@ -24,10 +25,10 @@ function Feedback() {
             <HoverCard width={180} shadow="md">
                 <HoverCard.Target>
                     <ActionIcon
-                    onClick={handleResponse(0)}
-                    variant="outline"
-                    size="xl"
-                    color="green">
+                        onClick={handleResponse(0)}
+                        variant="outline"
+                        size="xl"
+                        color="green">
                         <IconPlayerPlay />
                     </ActionIcon>
                 </HoverCard.Target>
@@ -41,10 +42,10 @@ function Feedback() {
             <HoverCard width={180} shadow="md">
                 <HoverCard.Target>
                     <ActionIcon
-                    onClick={handleResponse(1)}
-                    variant="outline"
-                    size="xl"
-                    color="yellow">
+                        onClick={handleResponse(1)}
+                        variant="outline"
+                        size="xl"
+                        color="yellow">
                         <IconPlayerPause />
                     </ActionIcon>
                 </HoverCard.Target>
@@ -58,10 +59,10 @@ function Feedback() {
             <HoverCard width={180} shadow="md">
                 <HoverCard.Target>
                     <ActionIcon
-                    onClick={handleResponse(2)}
-                    variant="outline"
-                    size="xl"
-                    color="red">
+                        onClick={handleResponse(2)}
+                        variant="outline"
+                        size="xl"
+                        color="red">
                         <IconPlayerStop />
                     </ActionIcon>
                 </HoverCard.Target>

@@ -1,12 +1,9 @@
 import {
     MantineProvider,
-    MantineColorsTuple,
-    createTheme,
-    useMantineTheme,
     Tabs
 } from "@mantine/core";
 import { useState, useEffect } from "react";
-import { Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 
 import Student from "./Student";
 import Teacher from "./Teacher";
@@ -16,8 +13,8 @@ import "@mantine/core/styles.css";
 import webTheme from "./theme";
 
 function App() {
-    const [game, setGame] = useState<bool>(false);
-    const [seq, setSeq] = useState([]);
+    const [game, setGame] = useState<boolean>(false);
+    const [_, setSeq] = useState<string[]>([]);
     const navigate = useNavigate();
     const { tabValue } = useParams();
 
@@ -36,8 +33,8 @@ function App() {
     ];
 
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            setSeq(prev => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            setSeq((prev: string[]) => {
                 const newSeq = [...prev, e.key];
 
                 const trimmed = newSeq.slice(-sequence.length);
@@ -60,21 +57,21 @@ function App() {
         <MantineProvider theme={webTheme} defaultColorScheme="dark">
 
             <Tabs
-            value={tabValue}
-            defaultValue="student"
-            variant="pills"
-            onChange={(value) => navigate(`/tabs/${value}`)}>
+                value={tabValue}
+                defaultValue="student"
+                variant="pills"
+                onChange={(value) => navigate(`/tabs/${value}`)}>
                 <Tabs.Tab value="student">Student</Tabs.Tab>
                 <Tabs.Tab value="teacher">Teacher</Tabs.Tab>
             </Tabs>
 
             <Routes>
-                <Route path="/" element={ <Student /> } />
-                <Route path="/tabs/student" element={ <Student /> } />
-                <Route path="/tabs/teacher" element={ <Teacher /> } />
+                <Route path="/" element={<Student />} />
+                <Route path="/tabs/student" element={<Student />} />
+                <Route path="/tabs/teacher" element={<Teacher />} />
             </Routes>
 
-            { game && <Game /> }
+            {game && <Game />}
 
         </MantineProvider>
     )

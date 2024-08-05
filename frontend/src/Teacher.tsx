@@ -5,13 +5,14 @@ import { Container, PasswordInput, Group } from "@mantine/core";
 import Responses from "./Components/Responses";
 import QuestionWindow from "./Components/QuestionWindow";
 import Line from "./Components/Line";
+import { RootState } from "./Store";
 
 function Teacher() {
     const [passwd, setPasswd] = useState("");
     const [updates, setUpdates] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [line, setLine] = useState([]);
-    const base = useSelector((state) => state.app.baseUrl);
+    const base = useSelector((state: RootState) => state.app.baseUrl);
 
     const headers = {
         "X-TotallySecure": passwd
@@ -25,7 +26,7 @@ function Teacher() {
         return resp;
     }
 
-    const handlePasswdChange = (e) => {
+    const handlePasswdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPasswd(e.target.value);
     }
 
@@ -54,12 +55,12 @@ function Teacher() {
     return (
         <Container size="xs">
             <PasswordInput
-            label="Password"
-            value={passwd}
-            onChange={handlePasswdChange} />
-            <Group>
+                label="Password"
+                value={passwd}
+                onChange={handlePasswdChange} />
+            <Group justify="space-between">
                 <Responses responses={updates} />
-                <Line line={line} />
+                <Line line={line} update={updateFunc} />
             </Group>
             <QuestionWindow questions={questions} passwd={passwd} />
         </Container>

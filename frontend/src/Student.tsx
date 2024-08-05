@@ -1,17 +1,16 @@
-import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { Container, TextInput } from "@mantine/core";
 
 import Feedback from "./Components/Feedback";
 import Questions from "./Components/Questions";
-import { setName } from "./Store";
+import { RootState, setName } from "./Store";
 
 function Student() {
     const dispatch = useDispatch();
-    const name = useSelector((state) => state.app.name);
+    const name = useSelector((state: RootState) => state.app.name);
 
-    const handleNameChange = (e) => {
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newName = e.target.value;
         dispatch(setName(newName));
     }
@@ -19,9 +18,9 @@ function Student() {
     return (
         <Container size="xs" >
             <TextInput
-            label="Name"
-            value={name}
-            onChange={handleNameChange}/>
+                label="Name"
+                value={name}
+                onChange={handleNameChange} />
             <Feedback />
             <Questions />
         </Container>
