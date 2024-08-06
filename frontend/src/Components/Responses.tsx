@@ -1,12 +1,25 @@
 import React from "react";
-import { Title, List, Divider } from "@mantine/core";
+import { useSelector } from "react-redux";
+import { Title, List, Divider, Button } from "@mantine/core";
 import { Response } from "../types.ts";
+import { RootState } from "../Store.ts";
 
 interface ResponsesProps {
     responses: Response[]
 }
 
 const Responses: React.FC<ResponsesProps> = ({ responses }) => {
+    const base = useSelector((state: RootState) => state.app.baseUrl);
+
+    const handleClear = () => {
+        fetch(`${base}/reset`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    }
+
     return (
         <div>
             <Title order={4}>Responses</Title>
@@ -20,6 +33,7 @@ const Responses: React.FC<ResponsesProps> = ({ responses }) => {
                     </List.Item>
                 ))}
             </List>
+            <Button variant="outline" onClick={handleClear}>Clear</Button>
         </div>
     )
 }
