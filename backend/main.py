@@ -40,6 +40,13 @@ def next_id(lst):
     except:
         return 0
 
+@app.get("/", status_code = 200)
+async def root_check() -> None:
+    """
+    Root endpoint to satisfy Beanstalk health check
+    """
+    return "Check /docs for endpoints."
+
 @app.post("/bbbq", status_code = 201, tags = ["student"])
 async def update_status(message: dict) -> None:
     """
@@ -80,7 +87,7 @@ async def update_teacher(req: Request) -> dict:
 @app.delete("/reset", status_code = 200, tags = ["teacher"])
 async def clear_updates(req: Request) -> None:
     """
-    Delete all updates, questions, and lines.
+    Delete all updates.
     """
     header = "X-TotallySecure"
     if header not in req.headers or passwd_check(req.headers[header]) != PASSWD:
