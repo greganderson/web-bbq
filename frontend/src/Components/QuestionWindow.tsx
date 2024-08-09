@@ -16,6 +16,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
     const handleDelete = async (id: number) => {
         try {
             const headers = {
+                "Content-Type": "application/json",
                 "X-TotallySecure": passwd
             }
 

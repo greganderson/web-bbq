@@ -5,17 +5,19 @@ import { Response } from "../types.ts";
 import { RootState } from "../Store.ts";
 
 interface ResponsesProps {
-    responses: Response[]
+    responses: Response[],
+    passwd: string
 }
 
-const Responses: React.FC<ResponsesProps> = ({ responses }) => {
+const Responses: React.FC<ResponsesProps> = ({ responses, passwd }) => {
     const base = useSelector((state: RootState) => state.app.baseUrl);
 
     const handleClear = () => {
         fetch(`${base}/reset`, {
             method: "DELETE",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-TotallySecure": passwd
             }
         });
     }

@@ -59,7 +59,7 @@ function Teacher() {
                 value={passwd}
                 onChange={handlePasswdChange} />
             <Group justify="space-between">
-                <Responses responses={updates} />
+                <Responses responses={updates} passwd={passwd} />
                 <Line line={line} update={updateFunc} />
             </Group>
             <QuestionWindow questions={questions} passwd={passwd} />
