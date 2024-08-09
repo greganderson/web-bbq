@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from redis import asyncio as aioredis
+from uuid import uuid4
 import hashlib
 import json
-from uuid import uuid4
+import os
 
 
 tags_metadata = [
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 PASSWD = "c963ca56d7ee4d9ef16e856f2d47cb148acc9618d6c401eccb391bdea0dd8dd2"
+PROD = os.getenv("REDIS_URL")
 
 def passwd_check(pwd):
     bytestr = pwd.encode("utf-8")
@@ -34,7 +36,7 @@ def passwd_check(pwd):
     return hashed
 
 async def get_redis():
-    redis = await aioredis.from_url("redis://localhost", decode_responses = True)
+    redis = await aioredis.from_url(PROD, decode_responses = True)
     try:
         yield redis
     finally:
