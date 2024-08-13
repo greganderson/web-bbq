@@ -108,7 +108,7 @@ async def delete_question(qid: str) -> None:
     For teacher to remove a question after answering. Also for students to retract their own answer.
     """
     for q in range(len(questions)):
-        if questions[q]["id"] == qid:
+        if questions[q]["id"] == int(qid):
             questions.pop(q)
 
 
