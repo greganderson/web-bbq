@@ -6,7 +6,7 @@ import { createSlice, configureStore } from "@reduxjs/toolkit";
 const appSlice = createSlice({
     name: "app",
     initialState: {
-        baseUrl: import.meta.env.VITE_URL,
+        baseUrl: import.meta.env.VITE_API_URL,
         name: "",
     },
     reducers: {
