@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Group, Button, ActionIcon, HoverCard, Text } from "@mantine/core";
+import Notification, { notifyError } from "./Notification";
 import { IconHandStop } from "@tabler/icons-react";
 import { RootState } from "../Store.ts";
 
@@ -22,8 +23,11 @@ function Questions() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ student: name, question: questionInput })
-        });
-        setQuestionInput("");
+        }).then(() => {
+            setQuestionInput("");
+        }).catch(error => {
+            notifyError(error.message);
+        })
     }
 
     const handleRaisedHand = () => {
@@ -32,7 +36,9 @@ function Questions() {
             headers: {
                 "Content-Type": "application/json"
             },
-        });
+        }).catch((error) => {
+            notifyError(error.message);
+        })
     }
 
     return (
@@ -61,6 +67,7 @@ function Questions() {
                 </HoverCard>
 
                 <Button variant="outline" onClick={handleQuestion}>Submit Question</Button>
+                <Notification />
             </Group>
         </>
     )

@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { Container, Title, List, Divider, ActionIcon } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import Notification, { notifyError } from "./Notification";
 import { Question } from "../types.ts";
 import { RootState } from "../Store.ts";
 
@@ -23,7 +24,9 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
             await fetch(`${base}/questions/${id}`, {
                 method: "DELETE",
                 headers: headers
-            });
+            }).catch(error => {
+                notifyError(error.message);
+            })
         } catch (err) {
             console.error(`Error deleting question: ${err}`);
         }
@@ -49,6 +52,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
                     </List.Item>
                 ))}
             </List>
+            <Notification />
         </Container>
     )
 }

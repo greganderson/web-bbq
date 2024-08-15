@@ -1,6 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Title, List, Divider, Button } from "@mantine/core";
+import Notification, { notifyError } from "./Notification";
 import { Response } from "../types.ts";
 import { RootState } from "../Store.ts";
 
@@ -19,7 +20,9 @@ const Responses: React.FC<ResponsesProps> = ({ responses, passwd }) => {
                 "Content-Type": "application/json",
                 "X-TotallySecure": passwd
             }
-        });
+        }).catch(error => {
+            notifyError(error.message);
+        })
     }
 
     return (
@@ -36,6 +39,7 @@ const Responses: React.FC<ResponsesProps> = ({ responses, passwd }) => {
                 ))}
             </List>
             <Button variant="outline" onClick={handleClear}>Clear</Button>
+            <Notification />
         </div>
     )
 }
