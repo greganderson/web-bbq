@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+import asyncio
 import hashlib
 import os
+import json
 
 
 tags_metadata = [
@@ -29,6 +32,7 @@ PASSWD = "c963ca56d7ee4d9ef16e856f2d47cb148acc9618d6c401eccb391bdea0dd8dd2"
 updates: list[dict[str, str]] = []
 questions: list[dict[str, str | int]] = []
 line: list = []
+clients = []
 
 
 def passwd_check(pwd):
@@ -58,6 +62,13 @@ async def update_status(message: dict) -> None:
     Student can let instructor know how they're doing with the lecture (good, slow down, explain something).
     """
     updates.append(message)
+    for client in clients:
+        try:
+            data = JSON.dumps(message)
+            await client.send(f"{data}\n\n")
+        except Exception as e:
+            print(f"Failed to send to client: {e}")
+            clients.remove(client)
 
 
 @app.post("/questions", status_code=201, tags=["student"])
@@ -88,6 +99,23 @@ async def update_teacher(req: Request) -> dict:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     return {"updates": updates, "questions": questions, "line": line}
+
+
+@app.get("/sse", tags=["teacher"])
+async def sse_endpoint(request: Request):
+
+    async def event_stream():
+        client = Response(media_type = "text/event-stream")
+        clients.append(client)
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                await asyncio.sleep(0.5)
+        finally:
+            clients.remove(client)
+
+    return StreamingResponse(event_stream(), media_type = "text/event-stream")
 
 
 # TODO: Change to POST

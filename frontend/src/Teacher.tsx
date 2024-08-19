@@ -30,27 +30,51 @@ function Teacher() {
         setPasswd(e.target.value);
     }
 
+    // useEffect(() => {
+    //     const fetchUpdates = async () => {
+    //         try {
+    //             const resp = await updateFunc();
+    //             const data = await resp.json();
+    //             setUpdates(data.updates.reverse());
+    //             setQuestions(data.questions);
+    //             setLine(data.line);
+    //         } catch (err) {
+    //             console.error(`Error fetching updates: ${err}`);
+    //         }
+    //     }
+    //
+    //     if (passwd) {
+    //         fetchUpdates();
+    //     }
+    //
+    //     const timer = setInterval(fetchUpdates, 1000);
+    //
+    //     return () => clearInterval(timer);
+    // }, [passwd]);
+
     useEffect(() => {
-        const fetchUpdates = async () => {
-            try {
-                const resp = await updateFunc();
-                const data = await resp.json();
-                setUpdates(data.updates.reverse());
-                setQuestions(data.questions);
-                setLine(data.line);
-            } catch (err) {
-                console.error(`Error fetching updates: ${err}`);
+        const createSSE = () => {
+            const eventSource = new EventSource("/sse");
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                setUpdates(old => [...old, data]);
             }
+
+            eventSource.onerror = function(error) {
+                console.error(`SSE ERROR: ${JSON.stringify(error)}`);
+                eventSource.close();
+            }
+
+            return eventSource;
         }
 
-        if (passwd) {
-            fetchUpdates();
+        const eventSource = createSSE();
+
+        return () => {
+            eventSource.close();
         }
-
-        const timer = setInterval(fetchUpdates, 1000);
-
-        return () => clearInterval(timer);
-    }, [passwd]);
+    }, []);
 
     return (
         <Container size="xs">
