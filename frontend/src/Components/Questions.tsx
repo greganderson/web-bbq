@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { Textarea, Group, Button, ActionIcon, HoverCard, Text } from "@mantine/core";
+import { Textarea, Button } from "@mantine/core";
 import Notification, { notifyError } from "./Notification";
-import { IconHandStop } from "@tabler/icons-react";
 import { RootState } from "../Store.ts";
 
 function Questions() {
@@ -16,6 +15,7 @@ function Questions() {
 
     const handleQuestion = () => {
         if (questionInput === "") return;
+        if (name === "") return;
 
         fetch(`${base}/questions`, {
             method: "POST",
@@ -23,20 +23,13 @@ function Questions() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ student: name, question: questionInput })
-        }).then(() => {
-            setQuestionInput("");
+        }).then((response) => {
+            if (response.status === 409) {
+                notifyError("You are already in line");
+            } else {
+                setQuestionInput("");
+            }
         }).catch(error => {
-            notifyError(error.message);
-        })
-    }
-
-    const handleRaisedHand = () => {
-        fetch(`${base}/line?student=${name}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-        }).catch((error) => {
             notifyError(error.message);
         })
     }
@@ -48,27 +41,8 @@ function Questions() {
                 value={questionInput}
                 onChange={handleQuestionChange} />
 
-            <Group justify="space-between">
-
-                <HoverCard width={180} shadow="md">
-                    <HoverCard.Target>
-                        <ActionIcon
-                            variant="outline"
-                            size="xl"
-                            onClick={handleRaisedHand}>
-                            <IconHandStop />
-                        </ActionIcon>
-                    </HoverCard.Target>
-                    <HoverCard.Dropdown>
-                        <Text size="xs">
-                            I would like some help when the instructor is free.
-                        </Text>
-                    </HoverCard.Dropdown>
-                </HoverCard>
-
-                <Button variant="outline" onClick={handleQuestion}>Submit Question</Button>
-                <Notification />
-            </Group>
+            <Button mt="xs" variant="outline" onClick={handleQuestion}>Submit Question</Button>
+            <Notification />
         </>
     )
 }

@@ -58,10 +58,9 @@ function Teacher() {
                 label="Password"
                 value={passwd}
                 onChange={handlePasswdChange} />
-            <Group justify="space-between">
+            <Container mt="xs" mb="xs">
                 <Responses responses={updates} passwd={passwd} />
-                <Line line={line} update={updateFunc} />
-            </Group>
+            </Container>
             <QuestionWindow questions={questions} passwd={passwd} />
         </Container>
     )

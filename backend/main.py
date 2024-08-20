@@ -65,17 +65,12 @@ async def ask_question(question: dict) -> None:
     """
     For students to ask a question.
     """
+    for i in questions:
+        if i["student"] == question["student"]:
+            raise HTTPException(status_code = 409, detail = "Student already in line.")
     new_id = next_id(questions) + 1
     questions.append(question)
     question["id"] = new_id
-
-
-@app.post("/line", status_code=201, tags=["student"])
-async def line_up(student: str) -> None:
-    """
-    Allows student to queue up for help.
-    """
-    line.append(student)
 
 
 @app.get("/teacher", tags=["teacher"])
