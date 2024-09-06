@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Container, PasswordInput, Group } from "@mantine/core";
+import { Container, PasswordInput, Group, Button } from "@mantine/core";
 
 import Responses from "./Components/Responses";
 import QuestionWindow from "./Components/QuestionWindow";
 import Line from "./Components/Line";
 import { RootState } from "./Store";
+import Notification, { notifyError } from "./Components/Notification";
 
 function Teacher() {
     const [passwd, setPasswd] = useState("");
     const [updates, setUpdates] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [line, setLine] = useState([]);
+    const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const base = useSelector((state: RootState) => state.app.baseUrl);
 
     const headers = {
@@ -30,51 +32,53 @@ function Teacher() {
         setPasswd(e.target.value);
     }
 
-    // useEffect(() => {
-    //     const fetchUpdates = async () => {
-    //         try {
-    //             const resp = await updateFunc();
-    //             const data = await resp.json();
-    //             setUpdates(data.updates.reverse());
-    //             setQuestions(data.questions);
-    //             setLine(data.line);
-    //         } catch (err) {
-    //             console.error(`Error fetching updates: ${err}`);
-    //         }
-    //     }
-    //
-    //     if (passwd) {
-    //         fetchUpdates();
-    //     }
-    //
-    //     const timer = setInterval(fetchUpdates, 1000);
-    //
-    //     return () => clearInterval(timer);
-    // }, [passwd]);
+    const handleLogin = async () => {
+        const response = await fetch(`${base}/login`, {
+            method: "POST",
+            headers: headers,
+            credentials: "include"
+        });
+
+        if (response.ok) {
+            setLoggedIn(true);
+            setPasswd("");
+        } else {
+            notifyError("Error logging in");
+        }
+    }
 
     useEffect(() => {
-        const createSSE = () => {
-            const eventSource = new EventSource("/sse");
+        if (loggedIn) {
+            console.log("Logged in now!");
+            const createSSE = () => {
+                const eventSource = new EventSource(`${base}/sse`, { withCredentials: true });
 
-            eventSource.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                setUpdates(old => [...old, data]);
+                eventSource.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    switch (data.type) {
+                        case "question":
+                            setQuestions(data.data);
+                            break;
+                        default:
+                            console.log(`Unknown type: ${data.type}`);
+                    }
+                }
+
+                eventSource.onerror = function(error) {
+                    console.error(`SSE ERROR: ${JSON.stringify(error)}`);
+                    eventSource.close();
+                }
+
+                return eventSource;
             }
 
-            eventSource.onerror = function(error) {
-                console.error(`SSE ERROR: ${JSON.stringify(error)}`);
+            const eventSource = createSSE();
+
+            return () => {
                 eventSource.close();
             }
-
-            return eventSource;
         }
-
-        const eventSource = createSSE();
-
-        return () => {
-            eventSource.close();
-        }
-    }, []);
+    }, [loggedIn]);
 
     return (
         <Container size="xs">
@@ -82,11 +86,13 @@ function Teacher() {
                 label="Password"
                 value={passwd}
                 onChange={handlePasswdChange} />
+            <Button variant="outline" onClick={handleLogin}>Login</Button>
             <Group justify="space-between">
                 <Responses responses={updates} passwd={passwd} />
                 <Line line={line} update={updateFunc} />
             </Group>
             <QuestionWindow questions={questions} passwd={passwd} />
+            <Notification />
         </Container>
     )
 }

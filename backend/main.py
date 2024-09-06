@@ -21,13 +21,14 @@ app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 PASSWD = "c963ca56d7ee4d9ef16e856f2d47cb148acc9618d6c401eccb391bdea0dd8dd2"
+HEADER = "X-TotallySecure"
 
 updates: list[dict[str, str]] = []
 questions: list[dict[str, str | int]] = []
@@ -49,11 +50,20 @@ def next_id(lst):
 
 
 @app.get("/", status_code=200)
-async def root_check() -> None:
+async def root_check() -> str:
     """
     Root endpoint to satisfy Beanstalk health check
     """
     return "Check /docs for endpoints."
+
+
+@app.post("/login", tags=["teacher"])
+async def login(response: Response, request: Request):
+    if HEADER not in request.headers or passwd_check(request.headers[HEADER]) != PASSWD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    response.set_cookie(key = "auth", value = PASSWD, httponly = True, samesite = "None", secure = False)
+    return {"message": "Cookie set"}
 
 
 @app.post("/bbbq", status_code=201, tags=["student"])
@@ -62,13 +72,10 @@ async def update_status(message: dict) -> None:
     Student can let instructor know how they're doing with the lecture (good, slow down, explain something).
     """
     updates.append(message)
-    for client in clients:
-        try:
-            data = JSON.dumps(message)
-            await client.send(f"{data}\n\n")
-        except Exception as e:
-            print(f"Failed to send to client: {e}")
-            clients.remove(client)
+
+    msg = json.dumps({"type": "bbbq", "data": updates})
+    for client_queue in clients:
+        await client_queue.put(msg)
 
 
 @app.post("/questions", status_code=201, tags=["student"])
@@ -77,8 +84,12 @@ async def ask_question(question: dict) -> None:
     For students to ask a question.
     """
     new_id = next_id(questions) + 1
-    questions.append(question)
     question["id"] = new_id
+    questions.append(question)
+
+    message = json.dumps({"type": "question", "data": questions})
+    for client_queue in clients:
+        await client_queue.put(message)
 
 
 @app.post("/line", status_code=201, tags=["student"])
@@ -88,34 +99,44 @@ async def line_up(student: str) -> None:
     """
     line.append(student)
 
+    message = json.dumps({ "type": "line", "data": line})
+    for client_queue in clients:
+        await client_queue.put(message)
+
 
 @app.get("/teacher", tags=["teacher"])
 async def update_teacher(req: Request) -> dict:
     """
     Log in as the teacher to view lecture updates, questions, and help line.
     """
-    header = "X-TotallySecure"
-    if header not in req.headers or passwd_check(req.headers[header]) != PASSWD:
+    if HEADER not in req.headers or passwd_check(req.headers[HEADER]) != PASSWD:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     return {"updates": updates, "questions": questions, "line": line}
 
 
 @app.get("/sse", tags=["teacher"])
-async def sse_endpoint(request: Request):
+async def sse(request: Request):
+    cookie = request.cookies.get("auth")
+    print(f"cookies: {request.cookies}")
+    if cookie != PASSWD:
+        print(f"PASSWD: {PASSWD}")
+        print(f"cookie: {cookie}")
+        raise HTTPException(status_code = 401, detail = "Unauthorized")
 
-    async def event_stream():
-        client = Response(media_type = "text/event-stream")
-        clients.append(client)
+    client_queue = asyncio.Queue()
+    clients.append(client_queue)
+
+    async def event_generator():
         try:
             while True:
-                if await request.is_disconnected():
-                    break
-                await asyncio.sleep(0.5)
-        finally:
-            clients.remove(client)
-
-    return StreamingResponse(event_stream(), media_type = "text/event-stream")
+                data = await client_queue.get()
+                yield f"data: {data}\n\n"
+        except asyncio.CancelledError:
+            clients.remove(client_queue)
+            raise
+    
+    return StreamingResponse(event_generator(), media_type = "text/event-stream")
 
 
 # TODO: Change to POST
@@ -139,6 +160,15 @@ async def delete_question(qid: str) -> None:
         if questions[q]["id"] == int(qid):
             questions.pop(q)
 
+            message = {
+                "type": "question_removed",
+                "id": qid,
+            }
+
+            for client_queue in clients:
+                await client_queue.put(message)
+
+            return
 
 # TODO: Change to POST?
 @app.delete("/line", tags=["teacher"])
