@@ -1,11 +1,20 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import asyncio
 import hashlib
-import os
 import json
+import uvicorn
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up...")
+    yield
+    for client_queue in clients:
+        client_queue.cancel()
+    await asyncio.gather(*clients, return_exceptions=True)
 
 tags_metadata = [
     {
@@ -17,7 +26,8 @@ tags_metadata = [
         "description": "Operations to be performed by the student app.",
     },
 ]
-app = FastAPI(openapi_tags=tags_metadata)
+
+app = FastAPI(openapi_tags=tags_metadata, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +44,7 @@ updates: list[dict[str, str]] = []
 questions: list[dict[str, str | int]] = []
 line: list = []
 clients = []
+shutdown_event = asyncio.Event()
 
 
 def passwd_check(pwd):
@@ -55,6 +66,11 @@ async def root_check() -> str:
     Root endpoint to satisfy Beanstalk health check
     """
     return "Check /docs for endpoints."
+
+
+@app.get("/coffee", status_code=418)
+async def brew_coffee() -> str:
+    return "I'm a little teapot, short and stout."
 
 
 @app.post("/login", tags=["teacher"])
@@ -118,23 +134,28 @@ async def update_teacher(req: Request) -> dict:
 @app.get("/sse", tags=["teacher"])
 async def sse(request: Request):
     cookie = request.cookies.get("auth")
-    print(f"cookies: {request.cookies}")
     if cookie != PASSWD:
-        print(f"PASSWD: {PASSWD}")
-        print(f"cookie: {cookie}")
         raise HTTPException(status_code = 401, detail = "Unauthorized")
 
     client_queue = asyncio.Queue()
     clients.append(client_queue)
 
     async def event_generator():
-        try:
-            while True:
-                data = await client_queue.get()
+        while True:
+            try:
+                data = await asyncio.wait_for(client_queue.get(), timeout=1)
                 yield f"data: {data}\n\n"
-        except asyncio.CancelledError:
-            clients.remove(client_queue)
-            raise
+            except asyncio.TimeoutError:
+                if shutdown_event.is_set():
+                    print("sending shutdown event")
+                    shutdown = {
+                        "type": "shutdown"
+                    }
+                    yield f"data: {json.dumps(shutdown)}\n\n"
+                    return
+            except asyncio.CancelledError:
+                # clients.remove(client_queue)
+                return
     
     return StreamingResponse(event_generator(), media_type = "text/event-stream")
 
@@ -177,3 +198,18 @@ async def help_next() -> None:
     Help the next person in line. Deletes first student from the line.
     """
     line.pop(0)
+
+def trigger_shutdown():
+    """Set shutdown_event to trigger graceful shutdown."""
+    shutdown_event.set()
+    print(f"shutdown_event is {shutdown_event.is_set()}")
+
+if __name__ == "__main__":
+    config = uvicorn.Config("main:app", loop="asyncio")
+    server = uvicorn.Server(config)
+
+    def on_exit_server(app):
+        app.lifespane.shutdown()
+        print(f"on_exit called")
+
+    server.run(on_exit=on_exit_server)

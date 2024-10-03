@@ -32,7 +32,8 @@ function Teacher() {
         setPasswd(e.target.value);
     }
 
-    const handleLogin = async () => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         const response = await fetch(`${base}/login`, {
             method: "POST",
             headers: headers,
@@ -55,9 +56,16 @@ function Teacher() {
 
                 eventSource.onmessage = function(event) {
                     const data = JSON.parse(event.data);
+
+                    console.log(event);
+
                     switch (data.type) {
                         case "question":
                             setQuestions(data.data);
+                            break;
+                        case "shutdown":
+                            notifyError("The server is shutting down");
+                            eventSource.close();
                             break;
                         default:
                             console.log(`Unknown type: ${data.type}`);
@@ -82,11 +90,13 @@ function Teacher() {
 
     return (
         <Container size="xs">
-            <PasswordInput
-                label="Password"
-                value={passwd}
-                onChange={handlePasswdChange} />
-            <Button variant="outline" onClick={handleLogin}>Login</Button>
+            <form onSubmit={handleLogin}>
+                <PasswordInput
+                    label="Password"
+                    value={passwd}
+                    onChange={handlePasswdChange} />
+                <Button variant="outline" onClick={handleLogin}>Login</Button>
+            </form>
             <Group justify="space-between">
                 <Responses responses={updates} passwd={passwd} />
                 <Line line={line} update={updateFunc} />
