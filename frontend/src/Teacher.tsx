@@ -55,9 +55,11 @@ function Teacher() {
                 const eventSource = new EventSource(`${base}/sse`, { withCredentials: true });
 
                 eventSource.onmessage = function(event) {
-                    const data = JSON.parse(event.data);
-
                     console.log(event);
+                    console.log(event.data);
+                    console.log(typeof event.data)
+                    const data = JSON.parse(event.data);
+                    console.log(data);
 
                     switch (data.type) {
                         case "question":

@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from sse_starlette.sse import EventSourceResponse
 import asyncio
 import hashlib
 import json
 import uvicorn
+import threading
 
 
 @asynccontextmanager
@@ -45,6 +46,10 @@ questions: list[dict[str, str | int]] = []
 line: list = []
 clients = []
 shutdown_event = asyncio.Event()
+
+async def broadcast(data: str):
+    for client in clients:
+        await client.put(data)
 
 
 def passwd_check(pwd):
@@ -95,7 +100,7 @@ async def update_status(message: dict) -> None:
 
 
 @app.post("/questions", status_code=201, tags=["student"])
-async def ask_question(question: dict) -> None:
+async def ask_question(question: dict, background_tasks: BackgroundTasks) -> None:
     """
     For students to ask a question.
     """
@@ -104,8 +109,7 @@ async def ask_question(question: dict) -> None:
     questions.append(question)
 
     message = json.dumps({"type": "question", "data": questions})
-    for client_queue in clients:
-        await client_queue.put(message)
+    background_tasks.add_task(broadcast, message)
 
 
 @app.post("/line", status_code=201, tags=["student"])
@@ -141,23 +145,20 @@ async def sse(request: Request):
     clients.append(client_queue)
 
     async def event_generator():
-        while True:
-            try:
-                data = await asyncio.wait_for(client_queue.get(), timeout=1)
-                yield f"data: {data}\n\n"
-            except asyncio.TimeoutError:
-                if shutdown_event.is_set():
-                    print("sending shutdown event")
-                    shutdown = {
-                        "type": "shutdown"
-                    }
-                    yield f"data: {json.dumps(shutdown)}\n\n"
-                    return
-            except asyncio.CancelledError:
-                # clients.remove(client_queue)
-                return
-    
-    return StreamingResponse(event_generator(), media_type = "text/event-stream")
+        try:
+            while True:
+                data = await client_queue.get()
+                if data is None:
+                    break
+                yield {"data": data}
+                await asyncio.sleep(0.2)
+        except asyncio.CancelledError as e:
+            print(f"Disconnected from client {request.client}")
+            raise e
+        finally:
+            clients.remove(client_queue)
+
+    return EventSourceResponse(event_generator())
 
 
 # TODO: Change to POST
@@ -199,8 +200,14 @@ async def help_next() -> None:
     """
     line.pop(0)
 
-def trigger_shutdown():
-    """Set shutdown_event to trigger graceful shutdown."""
+async def notify_shutdown():
+    shutdown_msg = json.dumps({"type": "shutdown", "message": "Server shutting down"})
+    for client_queue in clients:
+        await client_queue.put(shutdown_msg)
+        await client_queue.put(None)
+
+async def trigger_shutdown():
+    await notify_shutdown()
     shutdown_event.set()
     print(f"shutdown_event is {shutdown_event.is_set()}")
 
@@ -208,8 +215,4 @@ if __name__ == "__main__":
     config = uvicorn.Config("main:app", loop="asyncio")
     server = uvicorn.Server(config)
 
-    def on_exit_server(app):
-        app.lifespane.shutdown()
-        print(f"on_exit called")
-
-    server.run(on_exit=on_exit_server)
+    server.run()
