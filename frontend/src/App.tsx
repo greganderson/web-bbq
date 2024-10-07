@@ -8,6 +8,7 @@ import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import Student from "./Student";
 import Teacher from "./Teacher";
 import Game from "./Components/bbq/Game";
+import Notification from "./Components/Notification";
 
 import "@mantine/core/styles.css";
 import webTheme from "./theme";
@@ -70,6 +71,8 @@ function App() {
                 <Route path="/tabs/student" element={<Student />} />
                 <Route path="/tabs/teacher" element={<Teacher />} />
             </Routes>
+
+            <Notification />
 
             {game && <Game />}
 

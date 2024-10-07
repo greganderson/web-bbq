@@ -39,7 +39,6 @@ const Responses: React.FC<ResponsesProps> = ({ responses, passwd }) => {
                 ))}
             </List>
             <Button variant="outline" onClick={handleClear}>Clear</Button>
-            <Notification />
         </div>
     )
 }

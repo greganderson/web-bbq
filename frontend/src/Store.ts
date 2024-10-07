@@ -7,6 +7,7 @@ const appSlice = createSlice({
     name: "app",
     initialState: {
         baseUrl: import.meta.env.VITE_API_URL,
+        baseWS: import.meta.env.VITE_WS_URL,
         name: "",
     },
     reducers: {

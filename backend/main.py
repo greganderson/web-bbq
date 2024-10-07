@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from ConnectionManager import ConnectionManager
 import hashlib
-import os
+import json
 
 
 tags_metadata = [
@@ -18,6 +19,7 @@ app = FastAPI(openapi_tags=tags_metadata)
 
 app.add_middleware(
     CORSMiddleware,
+    # if cookies don't work then specify origin
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -25,10 +27,12 @@ app.add_middleware(
 )
 
 PASSWD = "c963ca56d7ee4d9ef16e856f2d47cb148acc9618d6c401eccb391bdea0dd8dd2"
+HEADER = "X-TotallySecure"
 
 updates: list[dict[str, str]] = []
 questions: list[dict[str, str | int]] = []
 line: list = []
+manager = ConnectionManager()
 
 
 def passwd_check(pwd):
@@ -45,11 +49,25 @@ def next_id(lst):
 
 
 @app.get("/", status_code=200)
-async def root_check() -> None:
+async def root_check() -> str:
     """
     Root endpoint to satisfy Beanstalk health check
     """
     return "Check /docs for endpoints."
+
+
+@app.get("/coffee", status_code=418)
+async def brew_coffee() -> str:
+    return "I'm a little teapot, short and stout."
+
+
+@app.post("/login", tags=["teacher"])
+async def login(response: Response, request: Request):
+    if HEADER not in request.headers or passwd_check(request.headers[HEADER]) != PASSWD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    response.set_cookie(key="auth", value=PASSWD, httponly=True, samesite="None", secure="False")
+    return {"message": "Cookie set"}
 
 
 @app.post("/bbbq", status_code=201, tags=["student"])
@@ -114,3 +132,27 @@ async def help_next() -> None:
     Help the next person in line. Deletes first student from the line.
     """
     line.pop(0)
+
+
+@app.websocket("/ws/student/{student_id}")
+async def student_websocket(websocket: WebSocket, student_id: str):
+    await manager.connect_student(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            await manager.process_message(message)
+    except WebSocketDisconnect:
+        manager.disconnect_student(websocket)
+
+
+@app.websocket("/ws/teacher/{teacher_id}")
+async def teacher_websocket(websocket: WebSocket, teacher_id: str):
+    await manager.connect_teacher(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            await manager.process_message(message)
+    except WebSocketDisconnect:
+        manager.disconnect_teacher(websocket)

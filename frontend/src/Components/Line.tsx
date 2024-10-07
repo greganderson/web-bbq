@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Title, List, Divider, ScrollArea, Button } from "@mantine/core";
-import Notification, { notifyError } from "./Notification";
+import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
 interface LineProps {
@@ -41,7 +41,6 @@ const Line: React.FC<LineProps> = ({ line, update }) => {
                 </List>
             </ScrollArea>
             <Button variant="outline" onClick={handleHelpNext}>Help Next</Button>
-            <Notification />
         </div>
     )
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Button } from "@mantine/core";
-import Notification, { notifyError } from "./Notification";
+import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
 function Questions() {
@@ -42,7 +42,6 @@ function Questions() {
                 onChange={handleQuestionChange} />
 
             <Button mt="xs" variant="outline" onClick={handleQuestion}>Submit Question</Button>
-            <Notification />
         </>
     )
 }

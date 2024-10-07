@@ -52,7 +52,6 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
                     </List.Item>
                 ))}
             </List>
-            <Notification />
         </Container>
     )
 }

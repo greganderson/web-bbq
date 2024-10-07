@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Group } from "@mantine/core";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerStop } from "@tabler/icons-react";
 import FeedbackBtn from "./FeedbackBtn";
-import Notification, { notifyError } from "./Notification";
+import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
 function Feedback() {
@@ -53,7 +53,6 @@ function Feedback() {
                 text="I'm lost and would like to clarify some things."
                 Icon={IconPlayerStop} />
 
-            <Notification />
         </Group>
     )
 }
