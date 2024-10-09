@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Button } from "@mantine/core";
-import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
 interface QuestionsProps {
@@ -10,7 +9,6 @@ interface QuestionsProps {
 
 const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
     const [questionInput, setQuestionInput] = useState("");
-    const base = useSelector((state: RootState) => state.app.baseUrl);
     const name = useSelector((state: RootState) => state.app.name);
 
     const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

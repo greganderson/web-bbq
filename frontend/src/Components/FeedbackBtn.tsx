@@ -12,7 +12,7 @@ interface FeedbackBtnProps {
 }
 
 const FeedbackBtn: React.FC<FeedbackBtnProps> = ({ id, highlighted, color, text, Icon, clickHandler }) => {
-	let highlight = id === highlighted ? "filled" : "outline"
+	const highlight = id === highlighted ? "filled" : "outline"
 	return (
 		<HoverCard width={180} shadow="md">
 			<HoverCard.Target>

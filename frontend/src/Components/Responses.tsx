@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Title, List, Divider, Button } from "@mantine/core";
-import Notification, { notifyError } from "./Notification";
+import { notifyError } from "./Notification";
 import { Response } from "../types.ts";
 import { RootState } from "../Store.ts";
 

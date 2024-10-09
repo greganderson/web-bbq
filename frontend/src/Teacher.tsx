@@ -6,15 +6,17 @@ import Responses from "./Components/Responses";
 import QuestionWindow from "./Components/QuestionWindow";
 import { RootState } from "./Store";
 import { notifyError, notifySuccess } from "./Components/Notification";
+import useWebSocket from "react-use-websocket";
 
 function Teacher() {
     const [passwd, setPasswd] = useState("");
     const [updates, setUpdates] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
-    const [socket, setSocket] = useState<null | WebSocket>(null);
     const base = useSelector((state: RootState) => state.app.baseUrl);
     const baseWS = useSelector((state: RootState) => state.app.baseWS);
+    const url = `${baseWS}/ws/teacher`;
+    const { sendMessage, lastJsonMessage } = useWebSocket(loggedIn ? url : null);
 
     const headers = {
         "X-TotallySecure": passwd
@@ -42,28 +44,10 @@ function Teacher() {
     }
 
     useEffect(() => {
-        if (loggedIn) {
-            const rand = Math.floor(Math.random() * 10000);
-            const ws = new WebSocket(`${baseWS}/ws/teacher/${rand}`);
-
-            ws.onopen = () => {
-                setSocket(ws);
-            }
-
-            ws.onmessage = (event) => {
-                console.log(event);
-            }
-
-            ws.onclose = () => {
-                notifyError("Websocket connection closed");
-            }
-
-            return () => {
-                ws.close();
-            }
+        if (lastJsonMessage !== null) {
+            console.log(lastJsonMessage);
         }
-
-    }, [loggedIn]);
+    })
 
     return (
         <Container size="xs">
