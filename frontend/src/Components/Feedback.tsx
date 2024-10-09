@@ -15,6 +15,8 @@ const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const responses = ["Green", "Yellow", "Red"];
 
     const handleResponse = useCallback((response: number) => () => {
+        if (name === "") return;
+
         const message = {
             "type": "new",
             "resource": "feedback",
