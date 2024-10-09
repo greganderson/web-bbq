@@ -146,8 +146,8 @@ async def student_websocket(websocket: WebSocket):
         manager.disconnect_student(websocket)
 
 
-@app.websocket("/ws/teacher/{teacher_id}")
-async def teacher_websocket(websocket: WebSocket, teacher_id: str):
+@app.websocket("/ws/teacher")
+async def teacher_websocket(websocket: WebSocket):
     await manager.connect_teacher(websocket)
     try:
         while True:

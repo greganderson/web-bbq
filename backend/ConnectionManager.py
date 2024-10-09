@@ -32,6 +32,7 @@ class ConnectionManager:
     async def connect_teacher(self, websocket: WebSocket):
         await websocket.accept()
         self.teachers.append(websocket)
+        await self.update_teachers(websocket)
 
     async def connect_student(self, websocket: WebSocket):
         await websocket.accept()
@@ -51,9 +52,20 @@ class ConnectionManager:
         elif resource == "feedback":
             self.feedback.clear()
 
-    async def broadcast_teachers(self, message: str):
-        for teacher in self.teachers:
-            await teacher.send_text(message)
+    async def update_teachers(self, connection = None):
+        updates = {
+            "type": "update",
+            "resource": None,
+            "id": None,
+            "data": [self.feedback, self.questions]
+        }
+        message = json.dumps(updates)
+
+        if connection is None:
+            for teacher in self.teachers:
+                await teacher.send_text(message)
+        else:
+            await connection.send_text(message)
     
     async def process_message(self, message: dict):
         if message["type"] == "delete":
@@ -67,12 +79,4 @@ class ConnectionManager:
             if message["resource"] == "question":
                 self.questions.append(message["data"])
         
-        updates = {
-            "type": "update",
-            "resource": None,
-            "id": None,
-            "data": [self.feedback, self.questions]
-        }
-        message = json.dumps(updates)
-        for teacher in self.teachers:
-            await teacher.send_text(message)
+        await self.update_teachers()
