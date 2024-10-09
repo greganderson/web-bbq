@@ -14,9 +14,12 @@ import json
 #     id: int | None
 #         - int: specifies the question or feedback to remove
 #         - None: no specific question or feedback specified
-#     data: [feedback[] | questions[]]:
-#         - an array of feedback to send depending on specified resource
-#         - alphabetically ordered
+#     data: [feedback[] | questions[]] | Feedback | Question | None:
+#         - For sending:
+#             - an array of feedback to send depending on specified resource
+#             - alphabetically ordered
+#         - For receiving:
+#             - data for the resource that is being created
 
 class ConnectionManager:
 
@@ -61,6 +64,8 @@ class ConnectionManager:
         elif message["type"] == "new":
             if message["resource"] == "feedback":
                 self.feedback.append(message["data"])
+            if message["resource"] == "question":
+                self.questions.append(message["data"])
         
         updates = {
             "type": "update",

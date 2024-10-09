@@ -134,8 +134,8 @@ async def help_next() -> None:
     line.pop(0)
 
 
-@app.websocket("/ws/student/{student_id}")
-async def student_websocket(websocket: WebSocket, student_id: str):
+@app.websocket("/ws/student")
+async def student_websocket(websocket: WebSocket):
     await manager.connect_student(websocket)
     try:
         while True:

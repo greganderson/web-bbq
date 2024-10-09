@@ -3,28 +3,31 @@ import { useSelector } from "react-redux";
 import { Group } from "@mantine/core";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerStop } from "@tabler/icons-react";
 import FeedbackBtn from "./FeedbackBtn";
-import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
-function Feedback() {
+interface FeedbackProps {
+    onSendMessage: (message: object) => void;
+}
+
+const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const name = useSelector((state: RootState) => state.app.name);
-    const base = useSelector((state: RootState) => state.app.baseUrl);
     const [highlighted, setHighlighted] = useState<number>(-1);
     const responses = ["Green", "Yellow", "Red"];
 
     const handleResponse = useCallback((response: number) => () => {
-        fetch(`${base}/bbbq`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ student: name, message: responses[response] })
-        }).catch(error => {
-            console.error(`Error: ${error}`);
-            notifyError(error.message);
-        });
+        const message = {
+            "type": "new",
+            "resource": "feedback",
+            "id": null,
+            "data": {
+                "student": name,
+                "feedback": responses[response]
+            }
+        };
+        
+        onSendMessage(message);
         setHighlighted(response);
-    }, [name, base]);
+    }, [name]);
 
     return (
         <Group justify="center" gap="xl" >

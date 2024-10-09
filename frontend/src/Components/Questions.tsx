@@ -4,7 +4,11 @@ import { Textarea, Button } from "@mantine/core";
 import { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
 
-function Questions() {
+interface QuestionsProps {
+    onSendMessage: (message: object) => void;
+}
+
+const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
     const [questionInput, setQuestionInput] = useState("");
     const base = useSelector((state: RootState) => state.app.baseUrl);
     const name = useSelector((state: RootState) => state.app.name);
@@ -17,21 +21,17 @@ function Questions() {
         if (questionInput === "") return;
         if (name === "") return;
 
-        fetch(`${base}/questions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ student: name, question: questionInput })
-        }).then((response) => {
-            if (response.status === 409) {
-                notifyError("You are already in line");
-            } else {
-                setQuestionInput("");
+        const message = {
+            "type": "new",
+            "resource": "question",
+            "id": null,
+            "data": {
+                "student": name,
+                "question": questionInput
             }
-        }).catch(error => {
-            notifyError(error.message);
-        })
+        }
+
+        onSendMessage(message);
     }
 
     return (
