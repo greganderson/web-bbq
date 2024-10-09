@@ -19,7 +19,6 @@ function Student() {
 
     const handleSendMessage = (message: object) => {
         sendMessage(JSON.stringify(message));
-        console.log("message send")
     }
 
     return (

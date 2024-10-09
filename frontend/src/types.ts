@@ -6,7 +6,14 @@ interface Question {
 
 interface Response {
   student: string,
-  message: string,
+  feedback: string,
 }
 
-export type { Response, Question };
+interface WebsocketResponse {
+  type: string,
+  resource: string,
+  id: number | null,
+  data: [ Response[], Question[] ]
+}
+
+export type { Response, Question, WebsocketResponse };

@@ -7,16 +7,17 @@ import QuestionWindow from "./Components/QuestionWindow";
 import { RootState } from "./Store";
 import { notifyError, notifySuccess } from "./Components/Notification";
 import useWebSocket from "react-use-websocket";
+import { Response, Question, WebsocketResponse } from "./types";
 
 function Teacher() {
     const [passwd, setPasswd] = useState("");
-    const [updates, setUpdates] = useState([]);
-    const [questions, setQuestions] = useState([]);
+    const [updates, setUpdates] = useState<Response[] | null>(null);
+    const [questions, setQuestions] = useState<Question[] | null>(null);
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const base = useSelector((state: RootState) => state.app.baseUrl);
     const baseWS = useSelector((state: RootState) => state.app.baseWS);
     const url = `${baseWS}/ws/teacher`;
-    const { sendMessage, lastJsonMessage } = useWebSocket(loggedIn ? url : null);
+    const { sendMessage, lastJsonMessage } = useWebSocket<WebsocketResponse>(loggedIn ? url : null);
 
     const headers = {
         "X-TotallySecure": passwd
@@ -43,11 +44,17 @@ function Teacher() {
         }
     }
 
+    const handleSendMessage = (message: object) => {
+        sendMessage(JSON.stringify(message));
+    }
+
     useEffect(() => {
-        if (lastJsonMessage !== null) {
+        if (lastJsonMessage != null) {
             console.log(lastJsonMessage);
+            setUpdates(lastJsonMessage.data[0]);
+            setQuestions(lastJsonMessage.data[1]);
         }
-    })
+    }, [lastJsonMessage]);
 
     return (
         <Container size="xs">
@@ -57,12 +64,11 @@ function Teacher() {
                     value={passwd}
                     onChange={handlePasswdChange} />
                 <Button variant="outline" onClick={handleLogin}>Login</Button>
-                <Button onClick={() => {notifySuccess("clicked!")}}>CLick</Button>
             </form>
             <Container mt="xs" mb="xs">
-                <Responses responses={updates} passwd={passwd} />
+                <Responses responses={updates} onSendMessage={handleSendMessage} />
             </Container>
-            <QuestionWindow questions={questions} passwd={passwd} />
+            <QuestionWindow questions={questions} onSendMessage={handleSendMessage} />
         </Container>
     )
 }

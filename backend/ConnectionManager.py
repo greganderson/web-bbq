@@ -1,6 +1,16 @@
 from fastapi import WebSocket
 import json
+import uuid
 
+# Feedback {
+#     student: string,
+#     feedback: string,
+# }
+# Question {
+#     id: string (set by server),
+#     student: string,
+#     question: string,
+# }
 # Message Format:
 #     type: init | delete | new | update
 #         - init: message sent on first connect
@@ -48,9 +58,17 @@ class ConnectionManager:
         if resource == "question":
             for i in range(len(self.questions)):
                 if self.questions[i]["id"] == ID:
-                    self.quesitons.pop(i)
+                    self.questions.pop(i)
         elif resource == "feedback":
             self.feedback.clear()
+
+    def update_feedback(self, response):
+        for i in range(len(self.feedback)):
+            if self.feedback[i]["student"] == response["student"]:
+                self.feedback[i] = response
+                return
+        else:
+            self.feedback.append(response)
 
     async def update_teachers(self, connection = None):
         updates = {
@@ -68,6 +86,7 @@ class ConnectionManager:
             await connection.send_text(message)
     
     async def process_message(self, message: dict):
+        print(message)
         if message["type"] == "delete":
             if message["resource"] == "feedback": 
                 self.delete("feedback")
@@ -75,8 +94,10 @@ class ConnectionManager:
                 self.delete("question", message["id"])
         elif message["type"] == "new":
             if message["resource"] == "feedback":
-                self.feedback.append(message["data"])
+                self.update_feedback(message["data"])
             if message["resource"] == "question":
+                small = str(uuid.uuid4())[:8]
+                message["data"]["id"] = small
                 self.questions.append(message["data"])
         
         await self.update_teachers()

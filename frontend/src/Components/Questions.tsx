@@ -30,6 +30,7 @@ const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
         }
 
         onSendMessage(message);
+        setQuestionInput("");
     }
 
     return (
