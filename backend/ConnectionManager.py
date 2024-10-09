@@ -57,8 +57,9 @@ class ConnectionManager:
     def delete(self, resource, ID = -1):
         if resource == "question":
             for i in range(len(self.questions)):
-                if self.questions[i]["id"] == ID:
+                if ID == self.questions[i]["id"]:
                     self.questions.pop(i)
+                    return
         elif resource == "feedback":
             self.feedback.clear()
 
