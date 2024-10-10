@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Container, PasswordInput, Button } from "@mantine/core";
+import { Container, PasswordInput, Button, ThemeIcon, Tooltip } from "@mantine/core";
+import { IconPlug, IconPlugOff } from "@tabler/icons-react";
 
 import Responses from "./Components/Responses";
 import QuestionWindow from "./Components/QuestionWindow";
 import { RootState } from "./Store";
 import { notifyError, notifySuccess } from "./Components/Notification";
-import useWebSocket from "react-use-websocket";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import { Response, Question, WebsocketResponse } from "./types";
 
 function Teacher() {
@@ -17,7 +18,8 @@ function Teacher() {
     const base = useSelector((state: RootState) => state.app.baseUrl);
     const baseWS = useSelector((state: RootState) => state.app.baseWS);
     const url = `${baseWS}/ws/teacher`;
-    const { sendMessage, lastJsonMessage } = useWebSocket<WebsocketResponse>(loggedIn ? url : null);
+    const { sendMessage, lastJsonMessage, readyState } = useWebSocket<WebsocketResponse>(loggedIn ? url : null);
+    const isConnected = readyState === ReadyState.OPEN;
 
     const headers = {
         "X-TotallySecure": passwd
@@ -58,6 +60,19 @@ function Teacher() {
 
     return (
         <Container size="xs">
+            {
+                isConnected ?
+                    <Tooltip label="Connected" color="gray">
+                        <ThemeIcon variant="outline">
+                            <IconPlug />
+                        </ThemeIcon>
+                    </Tooltip> :
+                    <Tooltip label="Disconnected" color="gray">
+                        <ThemeIcon variant="outline">
+                            <IconPlugOff />
+                        </ThemeIcon>
+                    </Tooltip>
+            }
             <form onSubmit={handleLogin}>
                 <PasswordInput
                     label="Password"
