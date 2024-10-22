@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { Group } from "@mantine/core";
-import { IconPlayerPlay, IconPlayerPause, IconPlayerStop } from "@tabler/icons-react";
+import { IconPlayerPlay, IconPlayerPause, IconPlayerStop, IconPlayerTrackNext } from "@tabler/icons-react";
 import FeedbackBtn from "./FeedbackBtn";
 import { RootState } from "../Store.ts";
 
@@ -12,7 +12,7 @@ interface FeedbackProps {
 const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const name = useSelector((state: RootState) => state.app.name);
     const [highlighted, setHighlighted] = useState<number>(-1);
-    const responses = ["Green", "Yellow", "Red"];
+    const responses = ["I'm on track", "Please slow down", "I'm lost", "Please go faster"];
 
     const handleResponse = useCallback((response: number) => () => {
         if (name === "") return;
@@ -26,13 +26,21 @@ const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
                 "feedback": responses[response]
             }
         };
-        
+
         onSendMessage(message);
         setHighlighted(response);
     }, [name]);
 
     return (
         <Group justify="center" gap="xl" >
+
+            <FeedbackBtn
+                id={3}
+                highlighted={highlighted}
+                clickHandler={handleResponse(3)}
+                color="blue"
+                text="I would like to move faster."
+                Icon={IconPlayerTrackNext} />
 
             <FeedbackBtn
                 id={0}
