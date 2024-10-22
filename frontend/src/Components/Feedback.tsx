@@ -4,6 +4,7 @@ import { Group } from "@mantine/core";
 import { IconPlayerPlay, IconPlayerPause, IconPlayerStop, IconPlayerTrackNext } from "@tabler/icons-react";
 import FeedbackBtn from "./FeedbackBtn";
 import { RootState } from "../Store.ts";
+import { notifyError } from "./Notification.tsx";
 
 interface FeedbackProps {
     onSendMessage: (message: object) => void;
@@ -15,7 +16,10 @@ const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const responses = ["I'm on track", "Please slow down", "I'm lost", "Please go faster"];
 
     const handleResponse = useCallback((response: number) => () => {
-        if (name === "") return;
+        if (name === "") {
+            notifyError("Your name is empty");
+            return;
+        }
 
         const message = {
             "type": "new",

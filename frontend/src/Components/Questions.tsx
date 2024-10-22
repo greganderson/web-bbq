@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Button } from "@mantine/core";
 import { RootState } from "../Store.ts";
+import { notifyError } from "./Notification.tsx";
 
 interface QuestionsProps {
     onSendMessage: (message: object) => void;
@@ -16,8 +17,10 @@ const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
     }
 
     const handleQuestion = () => {
-        if (questionInput === "") return;
-        if (name === "") return;
+        if (questionInput === "" || name === "") {
+            notifyError("Your name or question is empty");
+            return;
+        }
 
         const message = {
             "type": "new",
