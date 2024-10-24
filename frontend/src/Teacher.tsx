@@ -34,7 +34,6 @@ function Teacher() {
 
     useEffect(() => {
         if (lastJsonMessage != null) {
-            console.log(lastJsonMessage);
             setUpdates(lastJsonMessage.data[0]);
             setQuestions(lastJsonMessage.data[1]);
         }

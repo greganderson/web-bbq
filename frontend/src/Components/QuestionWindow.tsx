@@ -18,7 +18,6 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
             "data": null
         }
 
-        console.log(`Deleting: ${id}`);
         onSendMessage(message);
     }
 

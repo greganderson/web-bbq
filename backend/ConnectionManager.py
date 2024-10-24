@@ -87,7 +87,6 @@ class ConnectionManager:
             await connection.send_text(message)
     
     async def process_message(self, message: dict):
-        print(message)
         if message["type"] == "delete":
             if message["resource"] == "feedback": 
                 self.delete("feedback")
