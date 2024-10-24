@@ -1,4 +1,4 @@
-import { createTheme, Input, MantineColorsTuple, MantineThemeOverride, MantineTheme } from "@mantine/core";
+import { createTheme, MantineColorsTuple, MantineThemeOverride, MantineTheme } from "@mantine/core";
 import classes from "./App.module.css";
 
 const pale_purple: MantineColorsTuple = [
@@ -36,7 +36,18 @@ const webTheme: MantineThemeOverride = createTheme({
                 },
             }),
         },
-        Input: Input.extend({ classNames: classes }),
+        Input: {
+            classNames: {
+                input: classes.input
+            }
+        },
+        PasswordInput: {
+            styles: () => ({
+                root: {
+                    marginBottom: "1rem"
+                }
+            })
+        }
     },
 });
 

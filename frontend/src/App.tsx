@@ -75,7 +75,7 @@ function App() {
             <Notification />
 
             {game && <Game />}
-            
+
         </MantineProvider>
     )
 }
