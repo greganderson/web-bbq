@@ -15,9 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-PASSWD = "c963ca56d7ee4d9ef16e856f2d47cb148acc9618d6c401eccb391bdea0dd8dd2"
-HEADER = "X-TotallySecure"
-
 updates: list[dict[str, str]] = []
 questions: list[dict[str, str | int]] = []
 line: list = []

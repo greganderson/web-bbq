@@ -55,6 +55,9 @@ class ConnectionManager:
         self.students.remove(websocket)
 
     def delete(self, resource, ID = -1):
+        """
+        Delete the specified question or clear student feedback
+        """
         if resource == "question":
             for i in range(len(self.questions)):
                 if ID == self.questions[i]["id"]:
@@ -64,6 +67,9 @@ class ConnectionManager:
             self.feedback.clear()
 
     def update_feedback(self, response):
+        """
+        Update the lecture feedback per student rather than add multiple entries for the same student.
+        """
         for i in range(len(self.feedback)):
             if self.feedback[i]["student"] == response["student"]:
                 self.feedback[i] = response
@@ -72,6 +78,9 @@ class ConnectionManager:
             self.feedback.append(response)
 
     async def update_teachers(self, connection = None):
+        """
+        Send response updates to all teachers and send all responses to new teacher connections
+        """
         updates = {
             "type": "update",
             "resource": None,
@@ -87,6 +96,9 @@ class ConnectionManager:
             await connection.send_text(message)
     
     async def process_message(self, message: dict):
+        """
+        Process websocket connections according to the message format
+        """
         if message["type"] == "delete":
             if message["resource"] == "feedback": 
                 self.delete("feedback")
