@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { Modal, Button, Flex, Container, Stack, TextInput, PasswordInput } from "@mantine/core";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase.ts";
 import { notifyError, notifySuccess } from "../Notification.tsx";
 
@@ -33,7 +33,9 @@ const Login: React.FC<{}> = ({ }) => {
 				notifySuccess("You are now signed up!");
 			})
 			.catch((err) => {
-				notifyError(`Error: ${err}`);
+				const code = err.code;
+				const msg = err.message;
+				notifyError(`${code}: ${msg}`);
 			})
 	}
 
@@ -48,7 +50,27 @@ const Login: React.FC<{}> = ({ }) => {
 				notifySuccess("You are now logged in!");
 			})
 			.catch((err) => {
-				notifyError(`Error: ${err}`);
+				const code = err.code;
+				const msg = err.message;
+				notifyError(`${code}: ${msg}`);
+			})
+	}
+
+	const resetPasswd = (e: React.MouseEvent) => {
+		e.preventDefault();
+		if (email === "") {
+			notifyError("Fill out your email first");
+			return;
+		}
+
+		sendPasswordResetEmail(auth, email)
+			.then(() => {
+				notifySuccess("A reset link has been sent to your email!");
+			})
+			.catch((err) => {
+				const code = err.code;
+				const msg = err.message;
+				notifyError(`${code}: ${msg}`);
 			})
 	}
 
@@ -68,7 +90,10 @@ const Login: React.FC<{}> = ({ }) => {
 										label="Password"
 										value={passwd}
 										onChange={handlePasswdChange} />
-									<Button type="submit" variant="outline" onClick={onLogin}>Login</Button>
+									<Flex gap="xl" justify="center" align="center">
+										<Button variant="outline" onClick={resetPasswd}>Forgot Login?</Button>
+										<Button type="submit" variant="outline" onClick={onLogin}>Login</Button>
+									</Flex>
 								</form>
 							</Stack>
 						</Container> :
