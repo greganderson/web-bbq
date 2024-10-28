@@ -1,64 +1,66 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Container, PasswordInput } from "@mantine/core";
-
+import { Container, Group, ThemeIcon, Tooltip } from "@mantine/core";
+import { IconPlug, IconPlugOff } from "@tabler/icons-react";
 import Responses from "./Components/Responses";
 import QuestionWindow from "./Components/QuestionWindow";
 import { RootState } from "./Store";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+import { Response, Question, WebsocketResponse } from "./types";
+import Login from "./Components/teacher/Login";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase.ts";
 
 function Teacher() {
-    const [passwd, setPasswd] = useState("");
-    const [updates, setUpdates] = useState([]);
-    const [questions, setQuestions] = useState([]);
-    const base = useSelector((state: RootState) => state.app.baseUrl);
+    const [updates, setUpdates] = useState<Response[] | null>(null);
+    const [questions, setQuestions] = useState<Question[] | null>(null);
+    const [loggedIn, setLoggedIn] = useState<boolean>(false);
+    const baseWS = useSelector((state: RootState) => state.app.baseWS);
+    const url = `${baseWS}/ws/teacher`;
+    const { sendMessage, lastJsonMessage, readyState } = useWebSocket<WebsocketResponse>(loggedIn ? url : null);
+    const isConnected = readyState === ReadyState.OPEN;
 
-    const headers = {
-        "X-TotallySecure": passwd
-    };
-
-    const updateFunc = () => {
-        const resp = fetch(`${base}/teacher`, {
-            method: "GET",
-            headers: headers
-        });
-        return resp;
-    }
-
-    const handlePasswdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPasswd(e.target.value);
+    const handleSendMessage = (message: object) => {
+        sendMessage(JSON.stringify(message));
     }
 
     useEffect(() => {
-        const fetchUpdates = async () => {
-            try {
-                const resp = await updateFunc();
-                const data = await resp.json();
-                setUpdates(data.updates.reverse());
-                setQuestions(data.questions);
-            } catch (err) {
-                console.error(`Error fetching updates: ${err}`);
-            }
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setLoggedIn(!!user);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (lastJsonMessage != null) {
+            setUpdates(lastJsonMessage.data[0]);
+            setQuestions(lastJsonMessage.data[1]);
         }
-
-        if (passwd) {
-            fetchUpdates();
-        }
-
-        const timer = setInterval(fetchUpdates, 1000);
-
-        return () => clearInterval(timer);
-    }, [passwd]);
+    }, [lastJsonMessage]);
 
     return (
         <Container size="xs">
-            <PasswordInput
-                label="Password"
-                value={passwd}
-                onChange={handlePasswdChange} />
+            <Group justify="space-between">
+                {
+                    isConnected ?
+                        <Tooltip label="Connected" color="gray">
+                            <ThemeIcon variant="outline">
+                                <IconPlug />
+                            </ThemeIcon>
+                        </Tooltip> :
+                        <Tooltip label="Disconnected" color="gray">
+                            <ThemeIcon variant="outline">
+                                <IconPlugOff />
+                            </ThemeIcon>
+                        </Tooltip>
+                }
+                <Login />
+            </Group>
             <Container mt="xs" mb="xs">
-                <Responses responses={updates} passwd={passwd} />
+                <Responses responses={updates} onSendMessage={handleSendMessage} />
             </Container>
-            <QuestionWindow questions={questions} passwd={passwd} />
+            <QuestionWindow questions={questions} onSendMessage={handleSendMessage} />
         </Container>
     )
 }

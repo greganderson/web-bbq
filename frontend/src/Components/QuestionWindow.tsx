@@ -1,35 +1,24 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { Container, Title, List, Divider, ActionIcon } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import Notification, { notifyError } from "./Notification";
 import { Question } from "../types.ts";
-import { RootState } from "../Store.ts";
 
 interface QuestionProps {
-    questions: Question[],
-    passwd: string
-};
+    questions: Question[] | null,
+    onSendMessage: (message: object) => void
+}
 
-const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
-    const base = useSelector((state: RootState) => state.app.baseUrl);
+const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) => {
 
     const handleDelete = async (id: number) => {
-        try {
-            const headers = {
-                "Content-Type": "application/json",
-                "X-TotallySecure": passwd
-            }
-
-            await fetch(`${base}/questions/${id}`, {
-                method: "DELETE",
-                headers: headers
-            }).catch(error => {
-                notifyError(error.message);
-            })
-        } catch (err) {
-            console.error(`Error deleting question: ${err}`);
+        const message = {
+            "type": "delete",
+            "resource": "question",
+            "id": id,
+            "data": null
         }
+
+        onSendMessage(message);
     }
 
     const deleteBtnHandler = (id: number) => () => {
@@ -41,7 +30,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
             <Title order={4}>Questions</Title>
             <Divider my="md" />
             <List center>
-                {questions.map((question, idx: number) => (
+                {questions?.map((question, idx: number) => (
                     <List.Item
                         style={{ listStyleType: "none" }}
                         key={idx}>
@@ -52,7 +41,6 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, passwd }) => {
                     </List.Item>
                 ))}
             </List>
-            <Notification />
         </Container>
     )
 }
