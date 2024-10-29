@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Textarea, Button } from "@mantine/core";
-import Notification, { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
+import { notifyError } from "./Notification.tsx";
 
-function Questions() {
+interface QuestionsProps {
+    onSendMessage: (message: object) => void;
+}
+
+const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
     const [questionInput, setQuestionInput] = useState("");
-    const base = useSelector((state: RootState) => state.app.baseUrl);
     const name = useSelector((state: RootState) => state.app.name);
 
     const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -14,24 +17,23 @@ function Questions() {
     }
 
     const handleQuestion = () => {
-        if (questionInput === "") return;
-        if (name === "") return;
+        if (questionInput === "" || name === "") {
+            notifyError("Your name or question is empty");
+            return;
+        }
 
-        fetch(`${base}/questions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ student: name, question: questionInput })
-        }).then((response) => {
-            if (response.status === 409) {
-                notifyError("You are already in line");
-            } else {
-                setQuestionInput("");
+        const message = {
+            "type": "new",
+            "resource": "question",
+            "id": null,
+            "data": {
+                "student": name,
+                "question": questionInput
             }
-        }).catch(error => {
-            notifyError(error.message);
-        })
+        }
+
+        onSendMessage(message);
+        setQuestionInput("");
     }
 
     return (
@@ -42,7 +44,6 @@ function Questions() {
                 onChange={handleQuestionChange} />
 
             <Button mt="xs" variant="outline" onClick={handleQuestion}>Submit Question</Button>
-            <Notification />
         </>
     )
 }

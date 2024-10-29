@@ -1,12 +1,12 @@
 import { createSlice, configureStore } from "@reduxjs/toolkit";
 
 // const localhost = "http://localhost:8000"
-// const aws = "http://bbq-backend-dev.us-west-2.elasticbeanstalk.com"
 
 const appSlice = createSlice({
     name: "app",
     initialState: {
         baseUrl: import.meta.env.VITE_API_URL,
+        baseWS: import.meta.env.VITE_WS_URL,
         name: "",
     },
     reducers: {
@@ -15,7 +15,7 @@ const appSlice = createSlice({
         },
         setName: (state, action) => {
             state.name = action.payload;
-        },
+        }
     },
 });
 

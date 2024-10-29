@@ -24,7 +24,21 @@ export const notifyError = (msg: string) => {
 	toast.error(msg, {
 		position: "top-right",
 		autoClose: 3000,
-		hideProgressBar: true,
+		hideProgressBar: false,
+		closeOnClick: true,
+		pauseOnHover: false,
+		draggable: false,
+		progress: undefined,
+		theme: "colored",
+		transition: Bounce,
+	});
+};
+
+export const notifySuccess = (msg: string) => {
+	toast.success(msg, {
+		position: "top-right",
+		autoClose: 3000,
+		hideProgressBar: false,
 		closeOnClick: true,
 		pauseOnHover: false,
 		draggable: false,

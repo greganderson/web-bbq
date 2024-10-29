@@ -1,33 +1,50 @@
 import { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import { Group } from "@mantine/core";
-import { IconPlayerPlay, IconPlayerPause, IconPlayerStop } from "@tabler/icons-react";
+import { IconPlayerPlay, IconPlayerPause, IconPlayerStop, IconPlayerTrackNext } from "@tabler/icons-react";
 import FeedbackBtn from "./FeedbackBtn";
-import Notification, { notifyError } from "./Notification";
 import { RootState } from "../Store.ts";
+import { notifyError } from "./Notification.tsx";
 
-function Feedback() {
+interface FeedbackProps {
+    onSendMessage: (message: object) => void;
+}
+
+const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const name = useSelector((state: RootState) => state.app.name);
-    const base = useSelector((state: RootState) => state.app.baseUrl);
     const [highlighted, setHighlighted] = useState<number>(-1);
-    const responses = ["Green", "Yellow", "Red"];
+    const responses = ["I'm on track", "Please slow down", "I'm lost", "Please go faster"];
 
     const handleResponse = useCallback((response: number) => () => {
-        fetch(`${base}/bbbq`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ student: name, message: responses[response] })
-        }).catch(error => {
-            console.error(`Error: ${error}`);
-            notifyError(error.message);
-        });
+        if (name === "") {
+            notifyError("Your name is empty");
+            return;
+        }
+
+        const message = {
+            "type": "new",
+            "resource": "feedback",
+            "id": null,
+            "data": {
+                "student": name,
+                "feedback": responses[response]
+            }
+        };
+
+        onSendMessage(message);
         setHighlighted(response);
-    }, [name, base]);
+    }, [name]);
 
     return (
         <Group justify="center" gap="xl" >
+
+            <FeedbackBtn
+                id={3}
+                highlighted={highlighted}
+                clickHandler={handleResponse(3)}
+                color="blue"
+                text="I would like to move faster."
+                Icon={IconPlayerTrackNext} />
 
             <FeedbackBtn
                 id={0}
@@ -53,7 +70,6 @@ function Feedback() {
                 text="I'm lost and would like to clarify some things."
                 Icon={IconPlayerStop} />
 
-            <Notification />
         </Group>
     )
 }
