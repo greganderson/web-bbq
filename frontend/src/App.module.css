@@ -1,5 +1,23 @@
+/* LIGHT */
+.inputLight {
+    &:focus-within {
+        outline: rem(1px) solid var(--mantine-color-pastelBlue-4);
+    }
+
+    background-color: var(--mantine-color-pastelBlue-1);
+}
+
 .input {
     &:focus-within {
         outline: rem(1px) solid var(--mantine-color-pale_purple-4);
+    }
+}
+
+/* OTHER */
+.button {
+    &[data-variant="outline"] {
+        @mixin light {
+            color: var(--mantine-color-pastelBlue-8);
+        }
     }
 }
