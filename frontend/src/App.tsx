@@ -4,7 +4,7 @@ import {
     useMantineColorScheme
 } from "@mantine/core";
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { IconSun, IconMoon } from "@tabler/icons-react";
 import { useFlags } from "launchdarkly-react-client-sdk";
 
@@ -22,7 +22,8 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
     const [game, setGame] = useState<boolean>(false);
     const [_, setSeq] = useState<string[]>([]);
     const navigate = useNavigate();
-    const { tabValue } = useParams();
+    const location = useLocation();
+    const { pathname } = location;
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
     const { lightMode } = useFlags();
 
@@ -68,12 +69,13 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
 
     return (
         <>
-
             <Tabs
-                value={tabValue}
+                value={pathname.slice(1)}
                 defaultValue="student"
                 variant="pills"
-                onChange={(value) => navigate(`/tabs/${value}`)}>
+                onChange={(value) => {
+                    navigate(`/${value}`)
+                }}>
                 <Tabs.Tab value="student">Student</Tabs.Tab>
                 <Tabs.Tab value="teacher">Teacher</Tabs.Tab>
             </Tabs>
@@ -93,9 +95,9 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
 
 
             <Routes>
-                <Route path="/" element={<Student />} />
-                <Route path="/tabs/student" element={<Student />} />
-                <Route path="/tabs/teacher" element={<Teacher />} />
+                <Route path="/" element={<Navigate to="/student" />} />
+                <Route path="/student" element={<Student />} />
+                <Route path="/teacher" element={<Teacher />} />
             </Routes>
 
             <Notification />
