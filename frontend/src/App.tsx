@@ -1,23 +1,30 @@
 import {
-    MantineProvider,
-    Tabs
+    ActionIcon,
+    Tabs,
+    useMantineColorScheme
 } from "@mantine/core";
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { IconSun, IconMoon } from "@tabler/icons-react";
+import { useFlags } from "launchdarkly-react-client-sdk";
 
 import Student from "./Student";
 import Teacher from "./Teacher";
 import Game from "./Components/bbq/Game";
 import Notification from "./Components/Notification";
-
 import "@mantine/core/styles.css";
-import webTheme from "./theme";
 
-function App() {
+interface AppProps {
+    toggleTheme: () => void
+}
+
+const App: React.FC<AppProps> = ({ toggleTheme }) => {
     const [game, setGame] = useState<boolean>(false);
     const [_, setSeq] = useState<string[]>([]);
     const navigate = useNavigate();
     const { tabValue } = useParams();
+    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+    const { lightMode } = useFlags();
 
     const sequence = [
         "ArrowUp",
@@ -32,6 +39,11 @@ function App() {
         "a",
         "Enter"
     ];
+
+    const handleLightToggle = () => {
+        toggleColorScheme();
+        toggleTheme();
+    }
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,7 +67,7 @@ function App() {
     }, []);
 
     return (
-        <MantineProvider theme={webTheme} defaultColorScheme="dark">
+        <>
 
             <Tabs
                 value={tabValue}
@@ -65,6 +77,20 @@ function App() {
                 <Tabs.Tab value="student">Student</Tabs.Tab>
                 <Tabs.Tab value="teacher">Teacher</Tabs.Tab>
             </Tabs>
+
+            {
+                lightMode &&
+                <ActionIcon
+                    onClick={handleLightToggle}
+                    variant="outline">
+                    {
+                        colorScheme === "dark" ?
+                            <IconSun /> :
+                            <IconMoon />
+                    }
+                </ActionIcon>
+            }
+
 
             <Routes>
                 <Route path="/" element={<Student />} />
@@ -76,7 +102,7 @@ function App() {
 
             {game && <Game />}
 
-        </MantineProvider>
+        </>
     )
 }
 

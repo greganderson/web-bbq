@@ -16,6 +16,7 @@
     "@reduxjs/toolkit": "^2.2.7",
     "@tabler/icons-react": "^3.11.0",
     "firebase": "^11.0.1",
+    "launchdarkly-react-client-sdk": "^3.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.1.2",
