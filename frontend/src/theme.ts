@@ -14,7 +14,7 @@ const pale_purple: MantineColorsTuple = [
     '#3b3979'
 ];
 
-const webTheme: MantineThemeOverride = createTheme({
+export const webTheme: MantineThemeOverride = createTheme({
     primaryColor: "pale_purple",
     colors: {
         pale_purple,
@@ -51,4 +51,57 @@ const webTheme: MantineThemeOverride = createTheme({
     },
 });
 
-export default webTheme;
+const pastelBlue: MantineColorsTuple = [
+    "#EDF2FB",
+    "#E2EAFC",
+    "#D7E3FC",
+    "#CCDBFD",
+    "#C0D2FF",      // Don't use 4
+    "#C1D3FE",
+    "#BACEFF",      // Don't use 6
+    "#B6CCFE",
+    "#95b4fc",
+    "#ABC4FF"
+];
+
+export const lightMode: MantineThemeOverride = createTheme({
+    primaryColor: "pastelBlue",
+    colors: {
+        pastelBlue
+    },
+    components: {
+        Container: {
+            styles: (theme: MantineTheme) => ({
+                root: {
+                    border: `1px solid ${theme.colors.pastelBlue[9]}`,
+                    borderRadius: "5px",
+                    padding: "1rem",
+                },
+            }),
+        },
+        Group: {
+            styles: () => ({
+                root: {
+                    margin: "1rem",
+                },
+            }),
+        },
+        Input: {
+            classNames: {
+                input: classes.inputLight
+            },
+        },
+        PasswordInput: {
+            styles: () => ({
+                root: {
+                    marginBottom: "1rem"
+                }
+            })
+        },
+        Button: {
+            classNames: {
+                root: classes.button
+            }
+        }
+    },
+})
