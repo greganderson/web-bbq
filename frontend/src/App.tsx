@@ -11,8 +11,10 @@ import { useFlags } from "launchdarkly-react-client-sdk";
 import Student from "./Student";
 import Teacher from "./Teacher";
 import Game from "./Components/bbq/Game";
+import MemoBackground from "./Components/bbq/ThreeCanvas";
 import Notification from "./Components/Notification";
 import "@mantine/core/styles.css";
+import "./index.css";
 
 interface AppProps {
     toggleTheme: () => void
@@ -102,7 +104,7 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
 
             <Notification />
 
-            {game && <Game />}
+            <MemoBackground isVisible={game} />
 
         </>
     )
