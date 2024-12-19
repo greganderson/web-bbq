@@ -4,7 +4,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Paragraph},
-    Terminal,
+    DefaultTerminal,
 };
 use serde_json;
 use std::error::Error;
@@ -15,6 +15,7 @@ use tokio::net::TcpStream;
 use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
+use crossterm::event::{self, Event, KeyCode};
 
 mod types;
 
@@ -49,7 +50,42 @@ async fn ws_task(
     }
 }
 
-async fn render_ui(data: &AppState) {}
+async fn render_ui(
+    terminal: &mut DefaultTerminal,
+    message: &types::Message,
+) -> Result<(), Box<dyn Error>> {
+    let questions = message
+        .questions()
+        .iter()
+        .map(|q| format!("{}: {}", q.student(), q.question()))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let feedbacks = message
+        .feedbacks()
+        .iter()
+        .map(|f| format!("{}: {}", f.student(), f.feedback()))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .split(terminal.get_frame().size());
+
+    let question_paragraph = Paragraph::new(questions)
+        .block(Block::default().title("Questions").borders(Borders::ALL))
+        .style(Style::default().fg(Color::White));
+    let feedback_paragraph = Paragraph::new(feedbacks)
+        .block(Block::default().title("Feedbacks").borders(Borders::ALL))
+        .style(Style::default().fg(Color::White));
+
+    terminal.draw(|f| {
+        f.render_widget(question_paragraph, chunks[0]);
+        f.render_widget(feedback_paragraph, chunks[1]);
+    })?;
+
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -66,18 +102,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
         firebase.firebase_token
     );
 
+    let mut terminal = ratatui::init();
+    terminal.clear()?;
+
     let (ws_stream, _) = connect_async(url).await?;
     let (mut write, read) = ws_stream.split();
-    println!("Connected!");
+    // println!("Connected!");
 
     tokio::spawn(ws_task(state.clone(), read));
 
     loop {
         let mut rx = state.rx.lock().await;
+
         if let Ok(message) = rx.try_recv() {
             match serde_json::from_str::<types::Message>(&message) {
                 Ok(mut data) => {
                     data.normalize_data();
+                    render_ui(&mut terminal, &data).await?;
                 }
                 Err(e) => {
                     eprintln!("Failed to deserialize: {}", e);
@@ -86,4 +127,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
+
+    ratatui::restore();
 }
