@@ -17,7 +17,7 @@ const Questions: React.FC<QuestionsProps> = ({ onSendMessage }) => {
     }
 
     const handleQuestion = () => {
-        if (questionInput === "" || name === "") {
+        if (questionInput.trim() === "" || name.trim() === "") {
             notifyError("Your name or question is empty");
             return;
         }
