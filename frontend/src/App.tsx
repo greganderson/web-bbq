@@ -1,15 +1,19 @@
 import {
     ActionIcon,
+    Center,
+    Group,
     Tabs,
+    Modal,
     useMantineColorScheme
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { IconSun, IconMoon } from "@tabler/icons-react";
-import { useFlags } from "launchdarkly-react-client-sdk";
+import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react";
 
 import Student from "./Student";
 import Teacher from "./Teacher";
+import Settings from "./Components/Settings";
 import Game from "./Components/bbq/Game";
 import MemoBackground from "./Components/bbq/ThreeCanvas";
 import Notification from "./Components/Notification";
@@ -26,8 +30,7 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { pathname } = location;
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-    const { lightMode } = useFlags();
+    const [ opened, {open, close} ] = useDisclosure(false);
 
     const sequence = [
         "ArrowUp",
@@ -42,11 +45,6 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
         "a",
         "Enter"
     ];
-
-    const handleLightToggle = () => {
-        toggleColorScheme();
-        toggleTheme();
-    }
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,30 +69,35 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
 
     return (
         <>
-            <Tabs
-                value={pathname.slice(1)}
-                defaultValue="student"
-                variant="pills"
-                onChange={(value) => {
-                    navigate(`/${value}`)
-                }}>
-                <Tabs.Tab value="student">Student</Tabs.Tab>
-                <Tabs.Tab value="teacher">Teacher</Tabs.Tab>
-            </Tabs>
+            <Center
+                m="md">
+                <Group
+                    justify="space-between" gap="lg">
+                    <Tabs
+                        value={pathname.slice(1)}
+                        defaultValue="student"
+                        variant="pills"
+                        onChange={(value) => {
+                            navigate(`/${value}`)
+                        }}>
+                        <Tabs.List>
+                            <Tabs.Tab value="student">Student</Tabs.Tab>
+                            <Tabs.Tab value="teacher">Teacher</Tabs.Tab>
+                        </Tabs.List>
+                    </Tabs>
 
-            {
-                lightMode &&
-                <ActionIcon
-                    onClick={handleLightToggle}
-                    variant="outline">
-                    {
-                        colorScheme === "dark" ?
-                            <IconSun /> :
-                            <IconMoon />
-                    }
-                </ActionIcon>
-            }
+                    <ActionIcon
+                        onClick={open}
+                        variant="outline">
+                        <IconSettings />
+                    </ActionIcon>
+                </Group>
+            </Center>
 
+
+            <Modal opened={opened} onClose={close} withCloseButton={false}>
+                <Settings toggleTheme={toggleTheme} />
+            </Modal>
 
             <Routes>
                 <Route path="/" element={<Navigate to="/student" />} />
