@@ -4,17 +4,15 @@ import {
     Group,
     Tabs,
     Modal,
-    useMantineColorScheme
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 
 import Student from "./Student";
 import Teacher from "./Teacher";
 import Settings from "./Components/Settings";
-import Game from "./Components/bbq/Game";
 import MemoBackground from "./Components/bbq/ThreeCanvas";
 import Notification from "./Components/Notification";
 import "@mantine/core/styles.css";
