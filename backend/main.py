@@ -2,12 +2,20 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from ConnectionManager import ConnectionManager
 import json
+import os
+from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, auth
 
 
-cred = credentials.Certificate("./firebase-admin.json")
-firebase_admin.initialize_app(cred)
+load_dotenv()
+firebase_config = os.getenv("FIREBASE_ADMIN_CONFIG")
+if firebase_config:
+    cred = credentials.Certificate(json.loads(firebase_config))
+    firebase_admin.initialize_app(cred)
+else:
+    raise RuntimeError("FIREBASE_ADMIN_CONFIG is not set")
+
 app = FastAPI()
 
 app.add_middleware(
