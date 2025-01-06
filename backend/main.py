@@ -1,9 +1,13 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from ConnectionManager import ConnectionManager
 import json
+import firebase_admin
+from firebase_admin import credentials, auth
 
 
+cred = credentials.Certificate("./firebase-admin.json")
+firebase_admin.initialize_app(cred)
 app = FastAPI()
 
 app.add_middleware(
@@ -45,11 +49,20 @@ async def student_websocket(websocket: WebSocket):
 
 @app.websocket("/ws/teacher")
 async def teacher_websocket(websocket: WebSocket):
-    await manager.connect_teacher(websocket)
+    token = websocket.query_params.get('token')
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Token missing")
+
     try:
-        while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
-            await manager.process_message(message)
-    except WebSocketDisconnect:
-        manager.disconnect_teacher(websocket)
+        identity = auth.verify_id_token(token)
+        await manager.connect_teacher(websocket)
+        try:
+            while True:
+                data = await websocket.receive_text()
+                message = json.loads(data)
+                await manager.process_message(message)
+        except WebSocketDisconnect:
+            manager.disconnect_teacher(websocket)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")

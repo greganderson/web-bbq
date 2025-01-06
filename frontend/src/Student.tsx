@@ -24,7 +24,7 @@ function Student() {
     }
 
     return (
-        <Container size="xs" >
+        <Container size="xs" className="blurred">
             {
                 isConnected ?
                     <Tooltip label="Connected" color="gray">

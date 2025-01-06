@@ -10,9 +10,15 @@ const Login: React.FC<{}> = ({ }) => {
 	const [showLogin, setShowLogin] = useState<boolean>(true);
 	const [email, setEmail] = useState("");
 	const [passwd, setPasswd] = useState("");
+	const allowedDomain = "dixietech.edu";
 
 	const toggleSignUp = () => {
 		setShowLogin(!showLogin);
+	}
+
+	const validateEmail = (email: string) => {
+		const domain = email.split("@")[1];
+		return domain === allowedDomain;
 	}
 
 	const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,6 +31,11 @@ const Login: React.FC<{}> = ({ }) => {
 
 	const onSignUp = async (e: React.FormEvent<HTMLFormElement> | React.MouseEvent) => {
 		e.preventDefault();
+
+		if (!validateEmail(email)) {
+			notifyError("You must use a @dixietech.edu email to register");
+			return;
+		}
 
 		await createUserWithEmailAndPassword(auth, email, passwd)
 			.then(() => {

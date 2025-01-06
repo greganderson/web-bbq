@@ -16,7 +16,7 @@ const Feedback: React.FC<FeedbackProps> = ({ onSendMessage }) => {
     const responses = ["I'm on track", "Please slow down", "I'm lost", "Please go faster"];
 
     const handleResponse = useCallback((response: number) => () => {
-        if (name === "") {
+        if (name.trim() === "") {
             notifyError("Your name is empty");
             return;
         }

@@ -24,7 +24,7 @@ import uuid
 #     id: int | None
 #         - int: specifies the question or feedback to remove
 #         - None: no specific question or feedback specified
-#     data: [feedback[] | questions[]] | Feedback | Question | None:
+#     data: [feedback[] & questions[]] | Feedback | Question | None:
 #         - For sending:
 #             - an array of feedback to send depending on specified resource
 #             - alphabetically ordered
@@ -111,5 +111,8 @@ class ConnectionManager:
                 small = str(uuid.uuid4())[:8]
                 message["data"]["id"] = small
                 self.questions.append(message["data"])
+        else:
+            print("Message unknown")
+            print(message)
         
         await self.update_teachers()
