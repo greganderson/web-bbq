@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Container, TextInput, ThemeIcon, Tooltip } from "@mantine/core";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { IconPlug, IconPlugOff } from "@tabler/icons-react";
+import { notifyError } from "./Components/Notification.tsx";
 
 import Feedback from "./Components/Feedback";
 import Questions from "./Components/Questions";
@@ -20,6 +21,10 @@ function Student() {
     }
 
     const handleSendMessage = (message: object) => {
+        if (!isConnected) {
+            notifyError("Not connected to server. Please refresh and try again.");
+            return;
+        }
         sendMessage(JSON.stringify(message));
     }
 
