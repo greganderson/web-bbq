@@ -26,7 +26,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
     }
 
     return (
-        <Container>
+        <Container fluid>
             <Title order={4}>Questions</Title>
             <Divider my="md" />
             <List center>
@@ -35,6 +35,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
                         style={{ listStyleType: "none" }}
                         key={idx}>
                         <LineItem question={question} handleDelete={deleteBtnHandler} />
+                        <Divider mx="128" />
                     </List.Item>
                 ))}
             </List>
