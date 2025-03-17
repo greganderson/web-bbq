@@ -9,14 +9,14 @@ import { Question } from "../types";
 
 interface LineItemProps {
     question: Question;
-    handleDelete: (id: number) => void;
+    deleteBtn: () => void;
 }
 
-const LineItem: React.FC<LineItemProps> = ({ question, handleDelete }) => {
+const LineItem: React.FC<LineItemProps> = ({ question, deleteBtn }) => {
     const time = new Date(question.timestamp)
     return (
         <Group justify="space-between" mx="0" my="xs">
-            <ActionIcon variant="outline" onClick={ () => handleDelete(question.id) }>
+            <ActionIcon variant="outline" onClick={deleteBtn}>
                 <IconTrash />
             </ActionIcon>
             <Text w="80%" p="0"><strong>{question.student}:</strong> {question.question}</Text>
