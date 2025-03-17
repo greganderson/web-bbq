@@ -1,6 +1,6 @@
 import React from "react";
-import { Container, Title, List, Divider, ActionIcon } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { Container, Title, List, Divider } from "@mantine/core";
+import LineItem from "./LineItem";
 import { Question } from "../types.ts";
 
 interface QuestionProps {
@@ -26,7 +26,7 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
     }
 
     return (
-        <Container>
+        <Container fluid>
             <Title order={4}>Questions</Title>
             <Divider my="md" />
             <List center>
@@ -34,10 +34,8 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
                     <List.Item
                         style={{ listStyleType: "none" }}
                         key={idx}>
-                        <ActionIcon variant="outline" onClick={deleteBtnHandler(question.id)}>
-                            <IconTrash />
-                        </ActionIcon>
-                        {question.student}: {question.question}
+                        <LineItem question={question} handleDelete={deleteBtnHandler} />
+                        <Divider mx="128" />
                     </List.Item>
                 ))}
             </List>

@@ -75,7 +75,7 @@ function Teacher() {
     };
 
     return (
-        <Container size="xs" className="blurred">
+        <Container size="xl" className="blurred">
             <Group justify="space-between">
                 {
                     isConnected ?
@@ -93,7 +93,7 @@ function Teacher() {
                 <Login />
                 {loggedIn && <Button onClick={handleDownloadToken} variant="outline">Download Token</Button>}
             </Group>
-            <Container mt="xs" mb="xs">
+            <Container mt="xs" mb="xs" fluid>
                 <Responses responses={updates} onSendMessage={handleSendMessage} />
             </Container>
             <QuestionWindow questions={questions} onSendMessage={handleSendMessage} />
