@@ -1,19 +1,20 @@
 interface Question {
-  id: number,
-  student: string,
-  question: string
+  id: number;
+  student: string;
+  question: string;
+  timestamp: string;
 }
 
 interface Response {
-  student: string,
-  feedback: string,
+  student: string;
+  feedback: string;
 }
 
 interface WebsocketResponse {
-  type: string,
-  resource: string,
-  id: number | null,
-  data: [ Response[], Question[] ]
+  type: string;
+  resource: string;
+  id: number | null;
+  data: [ Response[], Question[] ];
 }
 
 export type { Response, Question, WebsocketResponse };

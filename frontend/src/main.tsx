@@ -7,7 +7,6 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { MantineProvider } from '@mantine/core';
 import { useLocalStorage } from "@mantine/hooks";
 import { webTheme, lightMode } from "./theme";
-import { basicLogger, LDProvider } from "launchdarkly-react-client-sdk";
 
 function Main() {
     const [colorScheme, setColorScheme] = useLocalStorage<"light" | "dark">({
@@ -15,14 +14,6 @@ function Main() {
         defaultValue: "dark"
     });
     const [currentTheme, setCurrentTheme] = useState(webTheme);
-    const launchDarkly = import.meta.env.VITE_LD_CLIENT_ID;
-    const ldContext = {
-        kind: "user",
-        anonymous: true
-    };
-    const ldOptions = {
-        logger: basicLogger({ level: "error" })
-    }
 
     const toggleTheme = () => {
         setCurrentTheme((prevTheme) => (prevTheme === webTheme ? lightMode : webTheme));
@@ -37,11 +28,9 @@ function Main() {
         <Router>
             <Provider store={store}>
                 <React.StrictMode>
-                    <LDProvider clientSideID={launchDarkly} context={ldContext} options={ldOptions}>
-                        <MantineProvider theme={currentTheme} defaultColorScheme={colorScheme}>
-                            <App toggleTheme={toggleTheme} />
-                        </MantineProvider>
-                    </LDProvider>
+                    <MantineProvider theme={currentTheme} defaultColorScheme={colorScheme}>
+                        <App toggleTheme={toggleTheme} />
+                    </MantineProvider>
                 </React.StrictMode>
             </Provider>
         </Router >

@@ -1,4 +1,5 @@
 from fastapi import WebSocket
+from datetime import datetime
 import json
 import uuid
 
@@ -109,7 +110,9 @@ class ConnectionManager:
                 self.update_feedback(message["data"])
             if message["resource"] == "question":
                 small = str(uuid.uuid4())[:8]
+                timestamp = datetime.now().isoformat()
                 message["data"]["id"] = small
+                message["data"]["timestamp"] = timestamp
                 self.questions.append(message["data"])
         else:
             print("Message unknown")
