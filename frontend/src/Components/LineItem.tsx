@@ -1,7 +1,6 @@
 import React from "react";
 import {
     ActionIcon,
-    Box,
     Group,
     Text
 } from "@mantine/core";
@@ -17,7 +16,7 @@ const LineItem: React.FC<LineItemProps> = ({ question, handleDelete }) => {
     const time = new Date(question.timestamp)
     return (
         <Group justify="space-between" mx="0" my="xs">
-            <ActionIcon variant="outline" onClick={handleDelete(question.id)}>
+            <ActionIcon variant="outline" onClick={ () => handleDelete(question.id) }>
                 <IconTrash />
             </ActionIcon>
             <Text w="80%" p="0"><strong>{question.student}:</strong> {question.question}</Text>
