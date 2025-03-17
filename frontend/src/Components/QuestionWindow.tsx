@@ -27,12 +27,14 @@ const QuestionWindow: React.FC<QuestionProps> = ({ questions, onSendMessage }) =
             <Divider my="md" />
             <List center>
                 {questions?.map((question, idx: number) => (
+                    <>
                     <List.Item
                         style={{ listStyleType: "none" }}
                         key={idx}>
                         <LineItem question={question} deleteBtn={() => handleDelete(question.id)} />
-                        <Divider mx="128" />
                     </List.Item>
+                    <Divider />
+                    </>
                 ))}
             </List>
         </Container>

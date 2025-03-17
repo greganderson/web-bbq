@@ -19,7 +19,7 @@ const LineItem: React.FC<LineItemProps> = ({ question, deleteBtn }) => {
             <ActionIcon variant="outline" onClick={deleteBtn}>
                 <IconTrash />
             </ActionIcon>
-            <Text w="80%" p="0"><strong>{question.student}:</strong> {question.question}</Text>
+            <Text style={{ maxWidth: "80%" }} p="0"><strong>{question.student}:</strong> {question.question}</Text>
             <Text p="0">{time.toLocaleTimeString()}</Text>
         </Group>
     )
