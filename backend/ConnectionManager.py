@@ -1,5 +1,6 @@
 from fastapi import WebSocket
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import uuid
 
@@ -110,7 +111,8 @@ class ConnectionManager:
                 self.update_feedback(message["data"])
             if message["resource"] == "question":
                 small = str(uuid.uuid4())[:8]
-                timestamp = datetime.now().isoformat()
+                mountain_time = ZoneInfo("America/Denver")
+                timestamp = datetime.now(mountain_time).isoformat()
                 message["data"]["id"] = small
                 message["data"]["timestamp"] = timestamp
                 self.questions.append(message["data"])
