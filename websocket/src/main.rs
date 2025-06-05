@@ -1,3 +1,4 @@
+use crossterm::event::{self, Event, KeyCode};
 use futures_util::{stream::SplitStream, stream::StreamExt, SinkExt};
 use ratatui::{
     backend::CrosstermBackend,
@@ -15,7 +16,6 @@ use tokio::net::TcpStream;
 use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use crossterm::event::{self, Event, KeyCode};
 
 mod types;
 
@@ -68,7 +68,7 @@ async fn render_ui(
         .join("\n");
 
     let chunks = Layout::default()
-        .direction(Direction::Vertical)
+        .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
         .split(terminal.get_frame().size());
 
