@@ -14,7 +14,8 @@ if firebase_config:
     cred = credentials.Certificate(json.loads(firebase_config))
     firebase_admin.initialize_app(cred)
 else:
-    raise RuntimeError("FIREBASE_ADMIN_CONFIG is not set")
+    cred = credentials.Certificate("./firebase-admin.json")
+    firebase_admin.initialize_app(cred)
 
 app = FastAPI()
 
@@ -45,14 +46,17 @@ async def brew_coffee() -> str:
 
 @app.websocket("/ws/student")
 async def student_websocket(websocket: WebSocket):
-    await manager.connect_student(websocket)
+    client_id = await manager.connect_student(websocket)
     try:
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
             await manager.process_message(message)
     except WebSocketDisconnect:
-        manager.disconnect_student(websocket)
+        # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
+        pass
+    finally:
+        manager.disconnect_student(client_id)
 
 
 @app.websocket("/ws/teacher")
@@ -64,13 +68,16 @@ async def teacher_websocket(websocket: WebSocket):
 
     try:
         identity = auth.verify_id_token(token)
-        await manager.connect_teacher(websocket)
+        client_id = await manager.connect_teacher(websocket)
         try:
             while True:
                 data = await websocket.receive_text()
                 message = json.loads(data)
                 await manager.process_message(message)
         except WebSocketDisconnect:
-            manager.disconnect_teacher(websocket)
+            # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
+            pass
+        finally:
+            manager.disconnect_teacher(client_id)
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
