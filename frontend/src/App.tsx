@@ -10,8 +10,8 @@ import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { IconSettings } from "@tabler/icons-react";
 
-import Student from "./Student";
-import Teacher from "./Teacher";
+import Student from "./pages/Student";
+import Teacher from "./pages/Teacher";
 import Settings from "./Components/Settings";
 import MemoBackground from "./Components/bbq/ThreeCanvas";
 import Notification from "./Components/Notification";
@@ -23,47 +23,10 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ toggleTheme }) => {
-    const [game, setGame] = useState<boolean>(false);
-    const [_, setSeq] = useState<string[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
     const { pathname } = location;
     const [ opened, {open, close} ] = useDisclosure(false);
-
-    const sequence = [
-        "ArrowUp",
-        "ArrowUp",
-        "ArrowDown",
-        "ArrowDown",
-        "ArrowLeft",
-        "ArrowRight",
-        "ArrowLeft",
-        "ArrowRight",
-        "b",
-        "a",
-        "Enter"
-    ];
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            setSeq((prev: string[]) => {
-                const newSeq = [...prev, e.key];
-
-                const trimmed = newSeq.slice(-sequence.length);
-                if (trimmed.join("") === sequence.join("")) {
-                    setGame(true);
-                }
-
-                return trimmed;
-            });
-        }
-
-        window.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
 
     return (
         <>
@@ -105,7 +68,7 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
 
             <Notification />
 
-            <MemoBackground isVisible={game} />
+            <MemoBackground isVisible={false} />
 
         </>
     )

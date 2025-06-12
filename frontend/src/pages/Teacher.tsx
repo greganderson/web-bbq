@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Button, Container, Group, ThemeIcon, Tooltip } from "@mantine/core";
 import { IconPlug, IconPlugOff } from "@tabler/icons-react";
-import Responses from "./Components/Responses";
-import QuestionWindow from "./Components/QuestionWindow";
-import { RootState } from "./Store";
+import Responses from "../Components/Responses";
+import QuestionWindow from "../Components/QuestionWindow";
+import { RootState } from "../Store";
 import useWebSocket, { ReadyState } from "react-use-websocket";
-import { Response, Question, WebsocketResponse } from "./types";
-import Login from "./Components/teacher/Login";
+import { Response, Question, WebsocketResponse } from "../types";
+import Login from "../Components/teacher/Login";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase.ts";
+import { auth } from "../firebase.ts";
 
 function Teacher() {
     const [updates, setUpdates] = useState<Response[] | null>(null);
@@ -80,12 +80,12 @@ function Teacher() {
                 {
                     isConnected ?
                         <Tooltip label="Connected" color="gray">
-                            <ThemeIcon variant="outline">
+                            <ThemeIcon variant="outline" color="green">
                                 <IconPlug />
                             </ThemeIcon>
                         </Tooltip> :
                         <Tooltip label="Disconnected" color="gray">
-                            <ThemeIcon variant="outline">
+                            <ThemeIcon variant="outline" color="red">
                                 <IconPlugOff />
                             </ThemeIcon>
                         </Tooltip>

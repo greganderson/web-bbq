@@ -2,11 +2,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { Container, TextInput, ThemeIcon, Tooltip } from "@mantine/core";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { IconPlug, IconPlugOff } from "@tabler/icons-react";
-import { notifyError } from "./Components/Notification.tsx";
+import { notifyError } from "../Components/Notification.tsx";
 
-import Feedback from "./Components/Feedback";
-import Questions from "./Components/Questions";
-import { RootState, setName } from "./Store";
+import Feedback from "../Components/Feedback";
+import Questions from "../Components/Questions";
+import { RootState, setName } from "../Store";
 
 function Student() {
     const dispatch = useDispatch();
@@ -33,12 +33,12 @@ function Student() {
             {
                 isConnected ?
                     <Tooltip label="Connected" color="gray">
-                        <ThemeIcon variant="outline">
+                        <ThemeIcon variant="outline" color="green">
                             <IconPlug />
                         </ThemeIcon>
                     </Tooltip> :
                     <Tooltip label="Disconnected" color="gray">
-                        <ThemeIcon variant="outline">
+                        <ThemeIcon variant="outline" color="red">
                             <IconPlugOff />
                         </ThemeIcon>
                     </Tooltip>
