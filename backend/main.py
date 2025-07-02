@@ -51,7 +51,7 @@ async def student_websocket(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
-            await manager.process_message(message)
+            await manager.process_message(message, client_id)
     except WebSocketDisconnect:
         # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
         pass
@@ -73,7 +73,7 @@ async def teacher_websocket(websocket: WebSocket):
             while True:
                 data = await websocket.receive_text()
                 message = json.loads(data)
-                await manager.process_message(message)
+                await manager.process_message(message, client_id)
         except WebSocketDisconnect:
             # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
             pass
@@ -81,3 +81,17 @@ async def teacher_websocket(websocket: WebSocket):
             manager.disconnect_teacher(client_id)
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+@app.websocket("/ws/test")
+async def test_ws(websocket: WebSocket):
+    client_id = await manager.connect_teacher(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            await manager.process_message(message, client_id)
+    except WebSocketDisconnect:
+        pass
+    finally:
+        manager.disconnect_teacher(client_id)
