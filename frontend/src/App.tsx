@@ -6,7 +6,6 @@ import {
     Modal,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { IconSettings } from "@tabler/icons-react";
 
@@ -17,6 +16,8 @@ import MemoBackground from "./Components/bbq/ThreeCanvas";
 import Notification from "./Components/Notification";
 import "@mantine/core/styles.css";
 import "./index.css";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 interface AppProps {
     toggleTheme: () => void
@@ -27,6 +28,8 @@ const App: React.FC<AppProps> = ({ toggleTheme }) => {
     const location = useLocation();
     const { pathname } = location;
     const [ opened, {open, close} ] = useDisclosure(false);
+
+    gsap.registerPlugin(useGSAP);
 
     return (
         <>
