@@ -39,11 +39,6 @@ async def root_check() -> str:
     return "Check /docs for endpoints."
 
 
-@app.get("/coffee", status_code=418)
-async def brew_coffee() -> str:
-    return "I'm a little teapot, short and stout."
-
-
 @app.websocket("/ws/student")
 async def student_websocket(websocket: WebSocket):
     client_id = await manager.connect_student(websocket)
