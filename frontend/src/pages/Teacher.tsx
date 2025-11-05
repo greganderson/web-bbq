@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { Button, Container, Group, ThemeIcon, Tooltip } from "@mantine/core";
 import { IconPlug, IconPlugOff } from "@tabler/icons-react";
@@ -8,8 +8,9 @@ import { RootState } from "../Store";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { Response, Question, WebsocketResponse } from "../types";
 import Login from "../Components/teacher/Login";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase.ts";
+import { notifyError } from "../Components/Notification";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 function Teacher() {
     const [updates, setUpdates] = useState<Response[] | null>(null);
@@ -17,34 +18,34 @@ function Teacher() {
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const baseWS = useSelector((state: RootState) => state.app.baseWS);
     const [wsUrl, setWsUrl] = useState<string | null>(null);
-    const { sendMessage, lastJsonMessage, readyState } = useWebSocket<WebsocketResponse>(wsUrl);
+    const { sendMessage, lastJsonMessage, readyState } = useWebSocket<WebsocketResponse>(wsUrl, {
+        onError: () => {
+            notifyError("Failed to connect. Please check your password and try again.");
+            setLoggedIn(false);
+            setWsUrl(null);
+        },
+        shouldReconnect: () => loggedIn,
+    });
     const isConnected = readyState === ReadyState.OPEN;
+    const iconRef = useRef<HTMLDivElement | null>(null);
+    const animRef = useRef<GSAPTween | null>(null);
 
     const handleSendMessage = (message: object) => {
         sendMessage(JSON.stringify(message));
     }
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setLoggedIn(!!user);
-        });
+    const handleLogin = (password: string) => {
+        const url = `${baseWS}/ws/teacher?password=${encodeURIComponent(password)}`;
+        setWsUrl(url);
+        setLoggedIn(true);
+    }
 
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (loggedIn) {
-            const user = auth.currentUser;
-            if (user) {
-                user.getIdToken().then((idToken) => {
-                    const url = `${baseWS}/ws/teacher?token=${idToken}`;
-                    setWsUrl(url);
-                });
-            }
-        } else {
-            setWsUrl(null);
-        }
-    }, [loggedIn, baseWS]);
+    const handleLogout = () => {
+        setLoggedIn(false);
+        setWsUrl(null);
+        setUpdates(null);
+        setQuestions(null);
+    }
 
     useEffect(() => {
         if (lastJsonMessage != null) {
@@ -53,26 +54,29 @@ function Teacher() {
         }
     }, [lastJsonMessage]);
 
-    const handleDownloadToken = () => {
-        const user = auth.currentUser;
-        if (user) {
-            user.getIdToken().then((idToken) => {
-                const jsonContent = {
-                    firebase_token: idToken,
-                    user_id: user.uid
-                };
+    useGSAP(() => {
+        if (!iconRef.current) return;
 
-                const blob = new Blob([JSON.stringify(jsonContent)], { type: 'application/json' });
+        animRef.current?.kill();
+        gsap.set(iconRef.current, { rotation: 0 });
 
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'firebase-token.json';
-                a.click();
-            }).catch((error) => {
-                console.error('Error getting ID token:', error);
+        if (!isConnected) {
+            animRef.current = gsap.fromTo(iconRef.current, {
+                rotation: -7
+            }, {
+                duration: 0.1,
+                repeat: -1,
+                yoyo: true,
+                rotation: 7,
+                ease: "linear"
             });
         }
-    };
+
+        return () => {
+            animRef.current?.kill();
+            gsap.set(iconRef.current, { rotation: 0 });
+        }
+    }, [isConnected]);
 
     return (
         <Container size="xl" className="blurred">
@@ -80,18 +84,21 @@ function Teacher() {
                 {
                     isConnected ?
                         <Tooltip label="Connected" color="gray">
-                            <ThemeIcon variant="outline" color="green">
+                            <ThemeIcon variant="outline" color="green" ref={iconRef}>
                                 <IconPlug />
                             </ThemeIcon>
                         </Tooltip> :
                         <Tooltip label="Disconnected" color="gray">
-                            <ThemeIcon variant="outline" color="red">
+                            <ThemeIcon variant="outline" color="red" ref={iconRef}>
                                 <IconPlugOff />
                             </ThemeIcon>
                         </Tooltip>
                 }
-                <Login />
-                {loggedIn && <Button onClick={handleDownloadToken} variant="outline">Download Token</Button>}
+                {loggedIn ? (
+                    <Button onClick={handleLogout} variant="outline">Logout</Button>
+                ) : (
+                    <Login onLogin={handleLogin} />
+                )}
             </Group>
             <Container mt="xs" mb="xs" fluid>
                 <Responses responses={updates} onSendMessage={handleSendMessage} />

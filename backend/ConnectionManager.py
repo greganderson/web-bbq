@@ -96,7 +96,7 @@ class ConnectionManager:
         message = json.dumps(updates)
 
         if connection is None:
-            for teacher in self.teachers:
+            for teacher in self.teachers.values():
                 await teacher.send_text(message)
         else:
             await connection.send_text(message)
