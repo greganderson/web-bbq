@@ -23,6 +23,8 @@ function Teacher() {
             notifyError("Failed to connect. Please check your password and try again.");
             setLoggedIn(false);
             setWsUrl(null);
+            // Clear saved password on connection error
+            localStorage.removeItem("teacherPassword");
         },
         shouldReconnect: () => loggedIn,
     });
@@ -34,10 +36,20 @@ function Teacher() {
         sendMessage(JSON.stringify(message));
     }
 
+    // Auto-login on mount if password is saved
+    useEffect(() => {
+        const savedPassword = localStorage.getItem("teacherPassword");
+        if (savedPassword) {
+            handleLogin(savedPassword);
+        }
+    }, [baseWS]); // Run when component mounts or baseWS changes
+
     const handleLogin = (password: string) => {
         const url = `${baseWS}/ws/teacher?password=${encodeURIComponent(password)}`;
         setWsUrl(url);
         setLoggedIn(true);
+        // Save password to localStorage for persistent login
+        localStorage.setItem("teacherPassword", password);
     }
 
     const handleLogout = () => {
@@ -45,6 +57,8 @@ function Teacher() {
         setWsUrl(null);
         setUpdates(null);
         setQuestions(null);
+        // Clear saved password from localStorage
+        localStorage.removeItem("teacherPassword");
     }
 
     useEffect(() => {
