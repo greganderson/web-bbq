@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-# Hardcoded teacher password - change this to your desired password
-TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD", "classroom123")
+# Teacher password must be set via TEACHER_PASSWORD environment variable
+TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD")
+if not TEACHER_PASSWORD:
+    raise ValueError("TEACHER_PASSWORD environment variable must be set")
 
 app = FastAPI()
 
