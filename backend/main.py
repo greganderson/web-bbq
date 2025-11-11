@@ -4,17 +4,13 @@ from ConnectionManager import ConnectionManager
 import json
 import os
 from dotenv import load_dotenv
-import firebase_admin
-from firebase_admin import credentials, auth
 
 
 load_dotenv()
-firebase_config = os.getenv("FIREBASE_ADMIN_CONFIG")
-if firebase_config:
-    cred = credentials.Certificate(json.loads(firebase_config))
-    firebase_admin.initialize_app(cred)
-else:
-    raise RuntimeError("FIREBASE_ADMIN_CONFIG is not set")
+# Teacher password must be set via TEACHER_PASSWORD environment variable
+TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD")
+if not TEACHER_PASSWORD:
+    raise ValueError("TEACHER_PASSWORD environment variable must be set")
 
 app = FastAPI()
 
@@ -38,39 +34,53 @@ async def root_check() -> str:
     return "Check /docs for endpoints."
 
 
-@app.get("/coffee", status_code=418)
-async def brew_coffee() -> str:
-    return "I'm a little teapot, short and stout."
-
-
 @app.websocket("/ws/student")
 async def student_websocket(websocket: WebSocket):
-    await manager.connect_student(websocket)
+    client_id = await manager.connect_student(websocket)
     try:
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
             await manager.process_message(message)
     except WebSocketDisconnect:
-        manager.disconnect_student(websocket)
+        # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
+        pass
+    finally:
+        manager.disconnect_student(client_id)
 
 
 @app.websocket("/ws/teacher")
 async def teacher_websocket(websocket: WebSocket):
-    token = websocket.query_params.get('token')
+    password = websocket.query_params.get('password')
 
-    if not token:
-        raise HTTPException(status_code=401, detail="Token missing")
+    if not password:
+        raise HTTPException(status_code=401, detail="Password missing")
 
+    if password != TEACHER_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    client_id = await manager.connect_teacher(websocket)
     try:
-        identity = auth.verify_id_token(token)
-        await manager.connect_teacher(websocket)
-        try:
-            while True:
-                data = await websocket.receive_text()
-                message = json.loads(data)
-                await manager.process_message(message)
-        except WebSocketDisconnect:
-            manager.disconnect_teacher(websocket)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            await manager.process_message(message)
+    except WebSocketDisconnect:
+        # finally branch handles all disconnects, but this is required to prevent WebSocketDisconnect errors from bubbling up
+        pass
+    finally:
+        manager.disconnect_teacher(client_id)
+
+
+@app.websocket("/ws/test")
+async def test_ws(websocket: WebSocket):
+    client_id = await manager.connect_teacher(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            await manager.process_message(message)
+    except WebSocketDisconnect:
+        pass
+    finally:
+        manager.disconnect_teacher(client_id)

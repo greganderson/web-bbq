@@ -36,25 +36,29 @@ import uuid
 class ConnectionManager:
 
     def __init__(self):
-        self.teachers: list[WebSocket] = []
-        self.students: list[WebSocket] = []
+        self.teachers: dict[str, WebSocket] = {}
+        self.students: dict[str, WebSocket] = {}
         self.feedback: list[dict[str, str]] = []
         self.questions: list[dict[str, str | int]] = []
 
     async def connect_teacher(self, websocket: WebSocket):
         await websocket.accept()
-        self.teachers.append(websocket)
+        client_id = str(uuid.uuid4())[:8]
+        self.teachers[client_id] = websocket
         await self.update_teachers(websocket)
+        return client_id
 
     async def connect_student(self, websocket: WebSocket):
         await websocket.accept()
-        self.students.append(websocket)
+        client_id = str(uuid.uuid4())[:8]
+        self.students[client_id] = websocket
+        return client_id
 
-    def disconnect_teacher(self, websocket: WebSocket):
-        self.teachers.remove(websocket)
+    def disconnect_teacher(self, client_id: str):
+        self.teachers.pop(client_id, None)
 
-    def disconnect_student(self, websocket: WebSocket):
-        self.students.remove(websocket)
+    def disconnect_student(self, client_id: str):
+        self.students.pop(client_id, None)
 
     def delete(self, resource, ID = -1):
         """
@@ -92,7 +96,7 @@ class ConnectionManager:
         message = json.dumps(updates)
 
         if connection is None:
-            for teacher in self.teachers:
+            for teacher in self.teachers.values():
                 await teacher.send_text(message)
         else:
             await connection.send_text(message)
