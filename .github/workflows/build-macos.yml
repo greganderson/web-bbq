@@ -23,9 +23,11 @@ jobs:
           go-version: '1.25.3'
 
       - name: Install dependencies
+        working-directory: gobbq
         run: go mod tidy
 
       - name: Build for macOS Apple Silicon
+        working-directory: gobbq
         env:
           GOOS: darwin
           GOARCH: arm64
@@ -49,7 +51,7 @@ jobs:
 
             **Binary:** gobbq
             **Architecture:** arm64 (Apple Silicon)
-          files: gobbq
+          files: gobbq/gobbq
           draft: false
           prerelease: false
         env:
