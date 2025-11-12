@@ -29,9 +29,10 @@ type teacherModel struct {
 	statusMsg      string
 	lastUpdate     time.Time
 	expandedQs     map[string]bool // Track which questions are expanded by ID
+	theme          Theme
 }
 
-func newTeacherModel(ws *WSClient) teacherModel {
+func newTeacherModel(ws *WSClient, theme Theme) teacherModel {
 	return teacherModel{
 		ws:             ws,
 		feedback:       []Response{},
@@ -41,6 +42,7 @@ func newTeacherModel(ws *WSClient) teacherModel {
 		width:          80,
 		height:         24,
 		expandedQs:     make(map[string]bool),
+		theme:          theme,
 	}
 }
 
@@ -212,7 +214,7 @@ func (m teacherModel) View() string {
 	// Main window style
 	mainWindow := lipgloss.NewStyle().
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2)
 
 	// Build content
@@ -240,7 +242,7 @@ func (m teacherModel) renderHeader() string {
 	// Title with box drawing
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color(borderColor))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 
 	title := titleStyle.Render("┃ 🍖 WEB-BBQ TEACHER DASHBOARD ┃")
 
@@ -248,28 +250,28 @@ func (m teacherModel) renderHeader() string {
 	var connStatus string
 	if m.ws.IsConnected() {
 		connStatus = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#4ECDC4")).
+			Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 			Render("● Live")
 	} else {
 		connStatus = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
+			Foreground(lipgloss.Color(m.theme.DisconnectedColor)).
 			Render("● Offline")
 	}
 
 	// Stats
 	feedbackCount := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFE66D")).
+		Foreground(lipgloss.Color(m.theme.TitleColor)).
 		Render(fmt.Sprintf("│ Feedback: %d", len(m.feedback)))
 
 	questionCount := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#95E1D3")).
+		Foreground(lipgloss.Color(m.theme.TitleColor)).
 		Render(fmt.Sprintf("│ Questions: %d", len(m.questions)))
 
 	header := title + "  " + connStatus + "  " + feedbackCount + "  " + questionCount
 
 	// Separator line
 	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.BorderColor)).
 		Render(strings.Repeat("─", m.width-8))
 
 	return header + "\n" + separator
@@ -279,19 +281,19 @@ func (m teacherModel) renderFooter() string {
 	var statusText string
 	if m.statusMsg != "" {
 		statusStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#95E1D3")).
+			Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 			Bold(true)
 		statusText = statusStyle.Render("► " + m.statusMsg)
 	}
 
 	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 		Italic(true)
 
 	helpText := "TAB: Switch Panel  │  C: Clear Feedback  │  D: Delete Question  │  E/ENTER/SPACE: Expand/Collapse  │  ↑↓/J/K: Navigate  │  Q/ESC: Quit"
 
 	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.BorderColor)).
 		Render(strings.Repeat("─", m.width-8))
 
 	footer := separator + "\n"
@@ -318,12 +320,12 @@ func (m teacherModel) renderFeedbackPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2).
 		Width(panelWidth)
 
 	if m.focus == teacherFocusFeedback {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(m.theme.ActiveBorderColor))
 	}
 
 	var content strings.Builder
@@ -331,14 +333,14 @@ func (m teacherModel) renderFeedbackPanel() string {
 	// Panel title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFE66D"))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 	content.WriteString(titleStyle.Render(fmt.Sprintf("── Student Feedback (%d) ──", len(m.feedback))))
 	content.WriteString("\n\n")
 
 	// Feedback list
 	if len(m.feedback) == 0 {
 		emptyStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666")).
+			Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 			Italic(true)
 		content.WriteString(emptyStyle.Render("No feedback yet...\nWaiting for students to respond"))
 	} else {
@@ -354,10 +356,10 @@ func (m teacherModel) renderFeedbackPanel() string {
 			icon  string
 			color string
 		}{
-			{FeedbackOnTrack, "▶", "#4ECDC4"},
-			{FeedbackSlowDown, "⏸", "#FFE66D"},
-			{FeedbackLost, "⏹", "#FF6B6B"},
-			{FeedbackGoFaster, "⏩", "#95E1D3"},
+			{FeedbackOnTrack, "▶", m.theme.OnTrackColor},
+			{FeedbackSlowDown, "⏸", m.theme.SlowDownColor},
+			{FeedbackLost, "⏹", m.theme.LostColor},
+			{FeedbackGoFaster, "⏩", m.theme.GoFasterColor},
 		}
 
 		for _, ft := range feedbackTypes {
@@ -385,7 +387,7 @@ func (m teacherModel) renderFeedbackPanel() string {
 	if m.focus == teacherFocusFeedback && len(m.feedback) > 0 {
 		content.WriteString("\n")
 		hintStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
+			Foreground(lipgloss.Color(m.theme.DisconnectedColor)).
 			Italic(true)
 		content.WriteString(hintStyle.Render("→ Press C to clear all feedback"))
 	}
@@ -408,12 +410,12 @@ func (m teacherModel) renderQuestionsPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2).
 		Width(panelWidth)
 
 	if m.focus == teacherFocusQuestions {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(m.theme.ActiveBorderColor))
 	}
 
 	var content strings.Builder
@@ -421,14 +423,14 @@ func (m teacherModel) renderQuestionsPanel() string {
 	// Panel title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFE66D"))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 	content.WriteString(titleStyle.Render(fmt.Sprintf("── Question Queue (%d) ──", len(m.questions))))
 	content.WriteString("\n\n")
 
 	// Questions list
 	if len(m.questions) == 0 {
 		emptyStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666")).
+			Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 			Italic(true)
 		content.WriteString(emptyStyle.Render("No questions yet...\nWaiting for students to ask"))
 	} else {
@@ -448,7 +450,7 @@ func (m teacherModel) renderQuestionsPanel() string {
 			// Selection indicator
 			if isSelected {
 				questionLine.WriteString(lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FF6B6B")).
+					Foreground(lipgloss.Color(m.theme.ActiveBorderColor)).
 					Bold(true).
 					Render("► "))
 			} else {
@@ -457,13 +459,13 @@ func (m teacherModel) renderQuestionsPanel() string {
 
 			// Time
 			timeStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#95E1D3"))
+				Foreground(lipgloss.Color(m.theme.TimestampColor))
 			questionLine.WriteString(timeStyle.Render(fmt.Sprintf("[%s]", timestamp)))
 			questionLine.WriteString(" ")
 
 			// Student name
 			nameStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#4ECDC4")).
+				Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 				Bold(true)
 			if isSelected {
 				nameStyle = nameStyle.Underline(true)
@@ -500,7 +502,7 @@ func (m teacherModel) renderQuestionsPanel() string {
 			// Show "more lines" indicator
 			if hasMore {
 				moreStyle := lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FFE66D")).
+					Foreground(lipgloss.Color(m.theme.TitleColor)).
 					Italic(true)
 				remainingLines := len(questionLines) - 5
 				if isSelected {
@@ -512,7 +514,7 @@ func (m teacherModel) renderQuestionsPanel() string {
 			} else if isExpanded && len(questionLines) > 5 {
 				// Show collapse hint if expanded
 				collapseStyle := lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FFE66D")).
+					Foreground(lipgloss.Color(m.theme.TitleColor)).
 					Italic(true)
 				content.WriteString(collapseStyle.Render("    → Press E/ENTER/SPACE to collapse"))
 				content.WriteString("\n")
@@ -521,7 +523,7 @@ func (m teacherModel) renderQuestionsPanel() string {
 			// Show delete hint for selected question
 			if isSelected {
 				deleteStyle := lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FF6B6B")).
+					Foreground(lipgloss.Color(m.theme.DisconnectedColor)).
 					Italic(true)
 				content.WriteString(deleteStyle.Render("    → Press D to delete"))
 				content.WriteString("\n")
@@ -533,7 +535,7 @@ func (m teacherModel) renderQuestionsPanel() string {
 		// Navigation hint
 		if m.focus == teacherFocusQuestions && len(m.questions) > 1 {
 			navStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#666")).
+				Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 				Italic(true)
 			content.WriteString(navStyle.Render("↑↓ or J/K to navigate"))
 		}

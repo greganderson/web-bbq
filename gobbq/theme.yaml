@@ -1,0 +1,22 @@
+# GoBBQ Gruvbox Theme
+# Inspired by the Gruvbox color scheme by morhetz
+# https://github.com/morhetz/gruvbox
+
+# Window and border colors
+border_color: "#928374"           # Gruvbox gray
+active_border_color: "#fabd2f"    # Gruvbox bright yellow
+
+# Text colors
+title_color: "#fe8019"            # Gruvbox bright orange
+help_text_color: "#7c6f64"        # Gruvbox dark gray
+timestamp_color: "#928374"        # Gruvbox gray
+
+# Status colors
+connected_color: "#b8bb26"        # Gruvbox bright green
+disconnected_color: "#fb4934"     # Gruvbox bright red
+
+# Student feedback option colors
+on_track_color: "#b8bb26"         # Gruvbox bright green (positive)
+slow_down_color: "#fabd2f"        # Gruvbox bright yellow (caution)
+lost_color: "#fb4934"             # Gruvbox bright red (alert)
+go_faster_color: "#8ec07c"        # Gruvbox bright aqua (action)

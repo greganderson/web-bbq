@@ -19,8 +19,6 @@ const (
 	focusName focusArea = iota
 	focusFeedback
 	focusQuestion
-	activeColor = "#FF6B6B"
-	borderColor = "#4ECDC4"
 )
 
 type studentModel struct {
@@ -34,6 +32,7 @@ type studentModel struct {
 	height           int
 	err              error
 	statusMsg        string
+	theme            Theme
 }
 
 type wsMessage []byte
@@ -65,7 +64,7 @@ func readStudentConfig() (string, error) {
 	return config.Name, nil
 }
 
-func newStudentModel(ws *WSClient) studentModel {
+func newStudentModel(ws *WSClient, theme Theme) studentModel {
 	ti := textinput.New()
 	ti.Placeholder = "Enter your name"
 	ti.Focus()
@@ -103,6 +102,7 @@ func newStudentModel(ws *WSClient) studentModel {
 		width:         80,
 		height:        24,
 		statusMsg:     statusMsg,
+		theme:         theme,
 	}
 }
 
@@ -262,7 +262,7 @@ func (m studentModel) sendQuestion() tea.Cmd {
 func (m studentModel) View() string {
 	mainWindow := lipgloss.NewStyle().
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2)
 
 	var content strings.Builder
@@ -287,18 +287,18 @@ func (m studentModel) View() string {
 func (m studentModel) renderHeader() string {
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color(borderColor))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 
 	title := titleStyle.Render("┃ 🍖 WEB-BBQ STUDENT ┃")
 
 	var connStatus string
 	if m.ws.IsConnected() {
 		connStatus = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#4ECDC4")).
+			Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 			Render("● Connected")
 	} else {
 		connStatus = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(borderColor)).
+			Foreground(lipgloss.Color(m.theme.DisconnectedColor)).
 			Render("● Disconnected")
 	}
 
@@ -306,7 +306,7 @@ func (m studentModel) renderHeader() string {
 	var nameInfo string
 	if m.studentName != "" {
 		nameInfo = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFE66D")).
+			Foreground(lipgloss.Color(m.theme.TitleColor)).
 			Render(" │ Student: " + m.studentName)
 	}
 
@@ -314,7 +314,7 @@ func (m studentModel) renderHeader() string {
 
 	// Separator line
 	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.BorderColor)).
 		Render(strings.Repeat("─", m.width-8))
 
 	return header + "\n" + separator
@@ -323,7 +323,7 @@ func (m studentModel) renderHeader() string {
 func (m studentModel) renderNamePanel() string {
 	panelStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#4ECDC4")).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(2, 4).
 		Width(50).
 		Align(lipgloss.Center)
@@ -332,7 +332,7 @@ func (m studentModel) renderNamePanel() string {
 
 	labelStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFE66D")).
+		Foreground(lipgloss.Color(m.theme.TitleColor)).
 		Align(lipgloss.Center)
 
 	content.WriteString(labelStyle.Render("── Enter Your Name ──"))
@@ -341,7 +341,7 @@ func (m studentModel) renderNamePanel() string {
 	content.WriteString("\n\n")
 
 	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#95E1D3")).
+		Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 		Italic(true).
 		Align(lipgloss.Center)
 	content.WriteString(helpStyle.Render("→ Press ENTER to continue"))
@@ -356,13 +356,13 @@ func (m studentModel) renderFooter() string {
 	var statusText string
 	if m.statusMsg != "" {
 		statusStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#95E1D3")).
+			Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 			Bold(true)
 		statusText = statusStyle.Render("► " + m.statusMsg)
 	}
 
 	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 		Italic(true)
 
 	var helpText string
@@ -375,7 +375,7 @@ func (m studentModel) renderFooter() string {
 	}
 
 	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#666")).
+		Foreground(lipgloss.Color(m.theme.BorderColor)).
 		Render(strings.Repeat("─", m.width-8))
 
 	footer := separator + "\n"
@@ -396,11 +396,11 @@ func (m studentModel) renderFeedbackPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2)
 
 	if m.focus == focusFeedback {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(m.theme.ActiveBorderColor))
 	}
 
 	var content strings.Builder
@@ -408,7 +408,7 @@ func (m studentModel) renderFeedbackPanel() string {
 	// Panel title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFE66D"))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 	content.WriteString(titleStyle.Render("── Feedback Controls ──"))
 	content.WriteString("\n\n")
 
@@ -420,10 +420,10 @@ func (m studentModel) renderFeedbackPanel() string {
 		color    string
 		feedback string
 	}{
-		{1, "▶", "I'm On Track", "#4ECDC4", FeedbackOnTrack},
-		{2, "⏸", "Please Slow Down", "#FFE66D", FeedbackSlowDown},
-		{3, "⏹", "I'm Lost", "#FF6B6B", FeedbackLost},
-		{4, "⏩", "Please Go Faster", "#95E1D3", FeedbackGoFaster},
+		{1, "▶", "I'm On Track", m.theme.OnTrackColor, FeedbackOnTrack},
+		{2, "⏸", "Please Slow Down", m.theme.SlowDownColor, FeedbackSlowDown},
+		{3, "⏹", "I'm Lost", m.theme.LostColor, FeedbackLost},
+		{4, "⏩", "Please Go Faster", m.theme.GoFasterColor, FeedbackGoFaster},
 	}
 
 	// Render buttons as list items
@@ -479,11 +479,11 @@ func (m studentModel) renderQuestionPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color(borderColor)).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2)
 
 	if m.focus == focusQuestion {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(m.theme.ActiveBorderColor))
 	}
 
 	var content strings.Builder
@@ -491,18 +491,18 @@ func (m studentModel) renderQuestionPanel() string {
 	// Panel title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FFE66D"))
+		Foreground(lipgloss.Color(m.theme.TitleColor))
 	content.WriteString(titleStyle.Render("── Ask a Question ──"))
 	content.WriteString("\n\n")
 
 	// Question input box
 	inputBoxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#666")).
+		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
 		Padding(1, 2)
 
 	if m.focus == focusQuestion {
-		inputBoxStyle = inputBoxStyle.BorderForeground(lipgloss.Color("#FFE66D"))
+		inputBoxStyle = inputBoxStyle.BorderForeground(lipgloss.Color(m.theme.ActiveBorderColor))
 	}
 
 	content.WriteString(inputBoxStyle.Render(m.questionInput.View()))
@@ -511,12 +511,12 @@ func (m studentModel) renderQuestionPanel() string {
 	// Submit instructions
 	if m.focus == focusQuestion {
 		hintStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#4ECDC4")).
+			Foreground(lipgloss.Color(m.theme.ConnectedColor)).
 			Italic(true)
 		content.WriteString(hintStyle.Render("→ Press CTRL+S to send  │  ENTER for new line"))
 	} else {
 		hintStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666")).
+			Foreground(lipgloss.Color(m.theme.HelpTextColor)).
 			Italic(true)
 		content.WriteString(hintStyle.Render("→ Press TAB to focus this field"))
 	}
