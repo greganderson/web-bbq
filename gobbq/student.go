@@ -19,6 +19,8 @@ const (
 	focusName focusArea = iota
 	focusFeedback
 	focusQuestion
+	activeColor = "#FF6B6B"
+	borderColor = "#4ECDC4"
 )
 
 type studentModel struct {
@@ -42,7 +44,6 @@ type StudentConfig struct {
 	Name string `yaml:"name"`
 }
 
-// readStudentConfig reads the student config from ~/.config/gobbq/config.yaml
 func readStudentConfig() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -52,7 +53,6 @@ func readStudentConfig() (string, error) {
 	configPath := filepath.Join(homeDir, ".config", "gobbq", "config.yaml")
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		// Config file doesn't exist or can't be read - not an error, just return empty
 		return "", nil
 	}
 
@@ -78,23 +78,19 @@ func newStudentModel(ws *WSClient) studentModel {
 	ta.SetWidth(60)
 	ta.SetHeight(5)
 
-	// Try to read name from config file
 	configName, err := readStudentConfig()
 	var studentName string
 	var focus focusArea
 	var statusMsg string
 
 	if err != nil {
-		// Error reading config - show warning but continue
 		statusMsg = fmt.Sprintf("Warning: %v", err)
 		focus = focusName
 	} else if configName != "" {
-		// Config found with name - use it and skip name input
 		studentName = configName
 		focus = focusFeedback
 		statusMsg = fmt.Sprintf("Welcome back, %s! (from config)", configName)
 	} else {
-		// No config or empty name - ask for name
 		focus = focusName
 	}
 
@@ -132,25 +128,22 @@ func (m studentModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	// Flag to track if we should update the question input
 	updateQuestionInput := true
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// Handle send question with ctrl+s (more reliable than ctrl+enter)
 		switch msg.String() {
 		case "ctrl+c", "esc":
 			return m, tea.Quit
 
 		case "ctrl+s":
-			// Ctrl+S sends the message
+			// Ctrl+S sends the message because ctl+enter was being weird
 			if m.focus == focusQuestion && m.questionInput.Value() != "" && m.studentName != "" {
 				cmds = append(cmds, m.sendQuestion())
 				updateQuestionInput = false
 			}
 
 		case "tab":
-			// Cycle through focus areas
 			if m.studentName == "" {
 				m.focus = focusName
 			} else {
@@ -167,13 +160,11 @@ func (m studentModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter":
-			// Enter in name field
 			if m.focus == focusName && m.nameInput.Value() != "" {
 				m.studentName = m.nameInput.Value()
 				m.focus = focusFeedback
 				m.statusMsg = fmt.Sprintf("Welcome, %s!", m.studentName)
 			}
-			// For question input, plain Enter creates a new line (let textarea handle it)
 
 		case "1", "2", "3", "4":
 			if m.focus == focusFeedback && m.studentName != "" {
@@ -183,12 +174,10 @@ func (m studentModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case questionSentMsg:
-		// Question was successfully sent, clear the input
 		m.questionInput.SetValue("")
 		m.statusMsg = "✓ Question sent!"
 
 	case wsMessage:
-		// Handle incoming websocket messages
 		m.statusMsg = "Message received"
 		cmds = append(cmds, waitForWSMessage(m.ws))
 
@@ -202,13 +191,11 @@ func (m studentModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 	}
 
-	// Update focused input
 	switch m.focus {
 	case focusName:
 		m.nameInput, cmd = m.nameInput.Update(msg)
 		cmds = append(cmds, cmd)
 	case focusQuestion:
-		// Only update the question input if we didn't consume the enter key
 		if updateQuestionInput {
 			m.questionInput, cmd = m.questionInput.Update(msg)
 			cmds = append(cmds, cmd)
@@ -273,20 +260,16 @@ func (m studentModel) sendQuestion() tea.Cmd {
 }
 
 func (m studentModel) View() string {
-	// Main window style
 	mainWindow := lipgloss.NewStyle().
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#FF6B6B")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2)
 
-	// Build content
 	var content strings.Builder
 
-	// Header with title and connection status
 	content.WriteString(m.renderHeader())
 	content.WriteString("\n\n")
 
-	// Main content area
 	if m.studentName == "" {
 		content.WriteString(m.renderNamePanel())
 	} else {
@@ -295,7 +278,6 @@ func (m studentModel) View() string {
 		content.WriteString(m.renderQuestionPanel())
 	}
 
-	// Footer with status and help
 	content.WriteString("\n")
 	content.WriteString(m.renderFooter())
 
@@ -303,14 +285,12 @@ func (m studentModel) View() string {
 }
 
 func (m studentModel) renderHeader() string {
-	// Title with box drawing
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FF6B6B"))
+		Foreground(lipgloss.Color(borderColor))
 
 	title := titleStyle.Render("┃ 🍖 WEB-BBQ STUDENT ┃")
 
-	// Connection status
 	var connStatus string
 	if m.ws.IsConnected() {
 		connStatus = lipgloss.NewStyle().
@@ -318,7 +298,7 @@ func (m studentModel) renderHeader() string {
 			Render("● Connected")
 	} else {
 		connStatus = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
+			Foreground(lipgloss.Color(borderColor)).
 			Render("● Disconnected")
 	}
 
@@ -416,11 +396,11 @@ func (m studentModel) renderFeedbackPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color("#4ECDC4")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2)
 
 	if m.focus == focusFeedback {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color("#FF6B6B"))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
 	}
 
 	var content strings.Builder
@@ -499,11 +479,11 @@ func (m studentModel) renderQuestionPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color("#95E1D3")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2)
 
 	if m.focus == focusQuestion {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color("#FF6B6B"))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
 	}
 
 	var content strings.Builder

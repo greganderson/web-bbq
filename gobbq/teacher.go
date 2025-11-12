@@ -18,17 +18,17 @@ const (
 )
 
 type teacherModel struct {
-	ws              *WSClient
-	feedback        []Response
-	questions       []Question
-	selectedQIndex  int
-	focus           teacherFocus
-	width           int
-	height          int
-	err             error
-	statusMsg       string
-	lastUpdate      time.Time
-	expandedQs      map[string]bool // Track which questions are expanded by ID
+	ws             *WSClient
+	feedback       []Response
+	questions      []Question
+	selectedQIndex int
+	focus          teacherFocus
+	width          int
+	height         int
+	err            error
+	statusMsg      string
+	lastUpdate     time.Time
+	expandedQs     map[string]bool // Track which questions are expanded by ID
 }
 
 func newTeacherModel(ws *WSClient) teacherModel {
@@ -212,7 +212,7 @@ func (m teacherModel) View() string {
 	// Main window style
 	mainWindow := lipgloss.NewStyle().
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#FF6B6B")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2)
 
 	// Build content
@@ -240,7 +240,7 @@ func (m teacherModel) renderHeader() string {
 	// Title with box drawing
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#FF6B6B"))
+		Foreground(lipgloss.Color(borderColor))
 
 	title := titleStyle.Render("┃ 🍖 WEB-BBQ TEACHER DASHBOARD ┃")
 
@@ -318,12 +318,12 @@ func (m teacherModel) renderFeedbackPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color("#4ECDC4")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2).
 		Width(panelWidth)
 
 	if m.focus == teacherFocusFeedback {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color("#FF6B6B"))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
 	}
 
 	var content strings.Builder
@@ -408,12 +408,12 @@ func (m teacherModel) renderQuestionsPanel() string {
 
 	panelStyle := lipgloss.NewStyle().
 		Border(panelBorder).
-		BorderForeground(lipgloss.Color("#95E1D3")).
+		BorderForeground(lipgloss.Color(borderColor)).
 		Padding(1, 2).
 		Width(panelWidth)
 
 	if m.focus == teacherFocusQuestions {
-		panelStyle = panelStyle.BorderForeground(lipgloss.Color("#FF6B6B"))
+		panelStyle = panelStyle.BorderForeground(lipgloss.Color(activeColor))
 	}
 
 	var content strings.Builder
