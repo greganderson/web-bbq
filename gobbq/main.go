@@ -16,6 +16,9 @@ func main() {
 	wsURL := flag.StringP("url", "u", defaultWSURL, "WebSocket server URL")
 	flag.Parse()
 
+	// Load theme configuration
+	theme := LoadTheme()
+
 	password, teacherMode := GetTeacherPassword()
 
 	var endpoint string
@@ -37,9 +40,9 @@ func main() {
 
 	var model tea.Model
 	if teacherMode {
-		model = newTeacherModel(ws)
+		model = newTeacherModel(ws, theme)
 	} else {
-		model = newStudentModel(ws)
+		model = newStudentModel(ws, theme)
 	}
 
 	p := tea.NewProgram(model, tea.WithAltScreen())

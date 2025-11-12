@@ -1,0 +1,36 @@
+# GoBBQ Theme Configuration
+# Copy this file to ~/.config/gobbq/theme.yaml to customize colors
+# All values are optional - any omitted values will use the default BBQ theme
+
+# Window and border colors
+border_color: "#666"              # Default border color for all windows
+active_border_color: "#FFE66D"    # Border color when a window/panel is focused
+
+# Text colors
+title_color: "#FF6B6B"            # Section titles and headers
+help_text_color: "#666"           # Muted help text and instructions
+timestamp_color: "#666"           # Question timestamps in teacher view
+
+# Status colors
+connected_color: "#4ECDC4"        # Connected/positive status indicator
+disconnected_color: "#FF6B6B"     # Disconnected/error status indicator
+
+# Student feedback option colors
+on_track_color: "#4ECDC4"         # "I'm on track" feedback (teal)
+slow_down_color: "#FFE66D"        # "Please slow down" feedback (yellow)
+lost_color: "#FF6B6B"             # "I'm lost" feedback (red)
+go_faster_color: "#95E1D3"        # "Please go faster" feedback (mint)
+
+# Example alternative theme (uncomment to use):
+# Cool Blues Theme
+# border_color: "#5588AA"
+# active_border_color: "#88CCFF"
+# title_color: "#4477AA"
+# help_text_color: "#778899"
+# timestamp_color: "#778899"
+# connected_color: "#44AA88"
+# disconnected_color: "#CC5555"
+# on_track_color: "#44AA88"
+# slow_down_color: "#FFBB44"
+# lost_color: "#CC5555"
+# go_faster_color: "#77CCDD"
