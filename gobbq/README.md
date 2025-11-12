@@ -210,6 +210,31 @@ The TUI uses a BBQ-themed color palette:
 - **Mint (#95E1D3)** - "Go faster" feedback, status messages
 - **Gray (#666)** - Help text, timestamps
 
+It can be customized by creating a theme.yaml inside `~/.config/gobbq/`.
+Any values not set will fall back to the default theme.
+
+Example config:
+```yaml
+# Window and border colors
+border_color: "#666"              # Default border color for all windows
+active_border_color: "#FFE66D"    # Border color when a window/panel is focused
+
+# Text colors
+title_color: "#FF6B6B"            # Section titles and headers
+help_text_color: "#666"           # Muted help text and instructions
+timestamp_color: "#666"           # Question timestamps in teacher view
+
+# Status colors
+connected_color: "#4ECDC4"        # Connected/positive status indicator
+disconnected_color: "#FF6B6B"     # Disconnected/error status indicator
+
+# Student feedback option colors
+on_track_color: "#4ECDC4"         # "I'm on track" feedback (teal)
+slow_down_color: "#FFE66D"        # "Please slow down" feedback (yellow)
+lost_color: "#FF6B6B"             # "I'm lost" feedback (red)
+go_faster_color: "#95E1D3"        # "Please go faster" feedback (mint)
+```
+
 ## License
 
 This is a companion TUI for the Web-BBQ project.
