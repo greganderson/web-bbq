@@ -8,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gen2brain/beeep"
 )
 
 type teacherFocus int
@@ -30,6 +31,7 @@ type teacherModel struct {
 	lastUpdate     time.Time
 	expandedQs     map[string]bool // Track which questions are expanded by ID
 	theme          Theme
+	startUp        time.Time
 }
 
 func newTeacherModel(ws *WSClient, theme Theme) teacherModel {
@@ -43,6 +45,7 @@ func newTeacherModel(ws *WSClient, theme Theme) teacherModel {
 		height:         24,
 		expandedQs:     make(map[string]bool),
 		theme:          theme,
+		startUp:        time.Now(),
 	}
 }
 
@@ -110,9 +113,9 @@ func (m teacherModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.questions = []Question{}
 
 			// Parse feedback
-			if feedbackData, ok := update.Data[0].([]interface{}); ok {
+			if feedbackData, ok := update.Data[0].([]any); ok {
 				for _, item := range feedbackData {
-					if itemMap, ok := item.(map[string]interface{}); ok {
+					if itemMap, ok := item.(map[string]any); ok {
 						resp := Response{}
 						if student, ok := itemMap["student"].(string); ok {
 							resp.Student = student
@@ -126,9 +129,9 @@ func (m teacherModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// Parse questions
-			if questionsData, ok := update.Data[1].([]interface{}); ok {
+			if questionsData, ok := update.Data[1].([]any); ok {
 				for _, item := range questionsData {
-					if itemMap, ok := item.(map[string]interface{}); ok {
+					if itemMap, ok := item.(map[string]any); ok {
 						q := Question{}
 						if id, ok := itemMap["id"].(string); ok {
 							q.ID = id
@@ -143,6 +146,9 @@ func (m teacherModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							q.Timestamp = timestamp
 						}
 						m.questions = append(m.questions, q)
+
+						// Check if question timestamp is before or after startup time
+						go m.checkTimes(q)
 					}
 				}
 			}
@@ -542,4 +548,16 @@ func (m teacherModel) renderQuestionsPanel() string {
 	}
 
 	return panelStyle.Render(content.String())
+}
+
+func notify(message, author string) {
+	beeep.AppName = "WEB-BBQ"
+	_ = beeep.Notify(author, message, "./bbq.svg")
+}
+
+func (m teacherModel) checkTimes(q Question) {
+	timestamp, _ := time.Parse(time.RFC3339, q.Timestamp)
+	if timestamp.After(m.startUp) {
+		notify(q.Question, q.Student)
+	}
 }
