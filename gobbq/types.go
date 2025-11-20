@@ -2,10 +2,10 @@ package main
 
 // Message represents the base websocket message structure
 type Message struct {
-	Type     string      `json:"type"`
-	Resource string      `json:"resource,omitempty"`
-	ID       interface{} `json:"id"`
-	Data     interface{} `json:"data"`
+	Type     string `json:"type"`
+	Resource string `json:"resource,omitempty"`
+	ID       any    `json:"id"`
+	Data     any    `json:"data"`
 }
 
 // FeedbackData represents student feedback data
@@ -37,16 +37,16 @@ type Response struct {
 
 // TeacherUpdate represents the data structure sent to teachers
 type TeacherUpdate struct {
-	Type     string        `json:"type"`
-	Resource interface{}   `json:"resource"`
-	ID       interface{}   `json:"id"`
-	Data     []interface{} `json:"data"`
+	Type     string `json:"type"`
+	Resource any    `json:"resource"`
+	ID       any    `json:"id"`
+	Data     []any  `json:"data"`
 }
 
 // Feedback options
 const (
-	FeedbackOnTrack    = "I'm on track"
-	FeedbackSlowDown   = "Please slow down"
-	FeedbackLost       = "I'm lost"
-	FeedbackGoFaster   = "Please go faster"
+	FeedbackOnTrack  = "I'm on track"
+	FeedbackSlowDown = "Please slow down"
+	FeedbackLost     = "I'm lost"
+	FeedbackGoFaster = "Please go faster"
 )
