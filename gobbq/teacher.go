@@ -31,7 +31,7 @@ type teacherModel struct {
 	lastUpdate     time.Time
 	expandedQs     map[string]bool // Track which questions are expanded by ID
 	theme          Theme
-	startUp        time.Time
+	lastSeen       time.Time
 }
 
 func newTeacherModel(ws *WSClient, theme Theme) teacherModel {
@@ -45,7 +45,7 @@ func newTeacherModel(ws *WSClient, theme Theme) teacherModel {
 		height:         24,
 		expandedQs:     make(map[string]bool),
 		theme:          theme,
-		startUp:        time.Now(),
+		lastSeen:       time.Now(),
 	}
 }
 
@@ -148,7 +148,7 @@ func (m teacherModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.questions = append(m.questions, q)
 
 						// Check if question timestamp is before or after startup time
-						go m.checkTimes(q)
+						m.checkTimes(q)
 					}
 				}
 			}
@@ -550,14 +550,15 @@ func (m teacherModel) renderQuestionsPanel() string {
 	return panelStyle.Render(content.String())
 }
 
-func notify(message, author string) {
+func notify() {
 	beeep.AppName = "WEB-BBQ"
-	_ = beeep.Notify(author, message, "./bbq.svg")
+	_ = beeep.Notify("New Question", "There is a new question in queue", "./bbq.svg")
 }
 
-func (m teacherModel) checkTimes(q Question) {
+func (m *teacherModel) checkTimes(q Question) {
 	timestamp, _ := time.Parse(time.RFC3339, q.Timestamp)
-	if timestamp.After(m.startUp) {
-		notify(q.Question, q.Student)
+	if timestamp.After(m.lastSeen) {
+		m.lastSeen = timestamp
+		notify()
 	}
 }
