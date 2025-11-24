@@ -10,11 +10,18 @@ import (
 
 const (
 	defaultWSURL = "wss://webbbq-backend-production.up.railway.app"
+	version      = "v1.0.0"
 )
 
 func main() {
 	wsURL := flag.StringP("url", "u", defaultWSURL, "WebSocket server URL")
+	var vers *bool = flag.BoolP("version", "v", false, "Print version")
 	flag.Parse()
+
+	if *vers {
+		fmt.Println(version)
+		return
+	}
 
 	// Load theme configuration
 	theme := LoadTheme()
